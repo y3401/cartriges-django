@@ -1,0 +1,124 @@
+{% extends "base_generic.html" %}
+
+{% block title %}<title>Список моделей принтеров</title>{% endblock %}
+
+{% block content %}
+{% include "_modal.html" %}
+{% load static %}
+{% load thumbnail %}
+<div class="main">
+  <a href="/"><img src="{% static 'media/pics/cross-small.png' %}" style="width:35px; position: absolute;right: 21px; top: 16px;" title="Закрыть справочник" ></a>
+    <h2>Список моделей принтеров</h2>
+    
+    {% if user.is_staff %}
+
+    <span id="add-span" style="position: absolute; right: 55px; top: 80px;">Добавить принтер
+      <img id="add-print" src="/media/pics/add-green128.png" alt="Добавить принтер" title="Добавить принтер" style="width:25px; vertical-align: middle;">
+    </span>
+    {% endif %}
+  
+<div class="listok" order=2>
+  {% if printers_list %}
+    <ol class="ol-0" start= "{{ page_obj.start_index }}">
+
+    {% for prn in printers_list %}
+
+      <li class="li-0"> 
+        <table id="listok" cellpadding="5" cellspacing="5">
+          <tr style="background-color: #e4e4ea;">
+              <td id="t-img" rowspan=3>
+                <div style="width:100px; height:100px;"> 
+                  {% if prn.photo_prn %}
+                    <span class="vid">
+                      <img id="mini" src="{% thumbnail prn.photo_prn 150x0 %}" data-form-url="/media/{{prn.photo_prn}}" alt="Фото">
+                          
+                    </span>
+  
+                  {% else %}
+                    <img id="blah" src="/media/pics/no_photo.jpg" alt="Нет фото" style="object-fit:cover;">
+                  {% endif %}
+                </div>
+              </td>
+              <td id="t-num"><h4 style="color: #686875;">{{ forloop.counter0|add:page_obj.start_index }}.</h4></td>
+              <td id="t-header"><h4><b>{{ prn.name_printer }}</b></h3></td>
+
+              {% if perms.cartrige.can_mark_returned %}
+                <td id="t-edit">
+                    <img class="myopa update-prn bs-modal" data-form-url="{% url 'printers-update' prn.pk %}?page={{ pn }}" src="/media/pics/edit-blue128.png" alt="Редактировать" title="Редактировать" style="width:25px">
+                </td>
+                <td id="t-del">
+                    <img class="myopa delete-prn" data-form-url="{% url 'printers-delete' prn.pk %}?page={{ pn }}" src="/media/pics/trash-red128.png" id="delc" alt="Удалить" title="Удалить" style="width:25px">
+                </td>
+              {% else %}
+                  <td id="t-edit"></td>
+                  <td id="t-del"></td>
+              {% endif  %}
+        </tr>
+        <tr>
+          <td id="t-comment" colspan=4><span id="c-gray">Картриджи:</span> 
+            {% for cc in prn.cart.all %}
+              <b>{{ cc }}</b>{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+          </td>
+        </tr>
+        <tr> 
+          <td id="t-list" colspan=4><span id="c-gray"></span>  
+          </td>
+        </tr>
+        </table>
+  
+      </li>
+
+    {% endfor %}
+ 
+    </ol>
+
+  {% else %}
+    <p>Еще тут ничего нет</p>
+  {% endif %} 
+  </div>
+  <span class="inform">
+    <div style="width:560px; height:560px; background: #fff; border-radius: 10px; box-shadow: inset 1px 1px 5px gray;">
+      <img id="big-img" src=""  alt="Фото" style="width:100%; height:100%; object-fit: contain; padding: 10px";>
+    </div>
+  </span>
+{% include "paginator.html" %}
+</div>
+
+<script type="text/javascript">
+
+  $(function () {
+
+    // Update buttons
+    $(".update-prn").each(function () {
+        $(this).modalForm({formURL: $(this).data("form-url")});
+    });
+
+
+  $("ol li #t-img #mini").mouseenter(function() {
+  
+    var mainImage = $(this).attr("data-form-url"); //Find Image Name
+    
+    $("#big-img").attr({ 'src': mainImage });
+    $(".inform").css({ display: 'block' });
+    return false;})
+    .mouseleave(function() {$(".inform").css({ display: 'none' });
+    return false;});
+  
+  
+
+    // Delete buttons - formURL is retrieved from the data of the element
+    $(".delete-prn").each(function () {
+        $(this).modalForm({formURL: $(this).data("form-url"), isDeleteForm: true});
+    });
+
+    // Create button opens form in modal with id="create-modal"
+    $("#add-print").modalForm({
+        formURL: "{% url 'printers-create' %}",
+        modalID: "#modal"
+    });
+
+  });
+</script>
+
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "base_generic.html" %}
+
+{% block title %}<title>Статистика использования картриджей</title>{% endblock %}
+
+{% block content %}
+{% include "_modal.html" %}
+{% load static %}
+
+<div class="main" >
+    <a href="/"><img src="{% static 'media/pics/cross-small.png' %}" style="width:35px; position: absolute;right: 21px; top: 16px;" title="Закрыть" ></a>
+    <h3>Статистика использования картриджей</h3>
+    
+<div id="part" style="width: 96%; left:25px;">
+  <form id="poisk" action="" method="get" class="findform">
+    <input type="number" name="isknum" min="0" class="w-125px inl_my form-control-my" placeholder="Учетный N" style="display:none;" id="id_isknum">
+    <input class="w-125px btn btn-primary" type="submit" value="Найти" style="vertical-align:unset;display:none;" id="sub">
+
+    <select name="static" class="w-50 form-control" required="" id="static"  style="float:inline-end;margin-top: 11px;">
+        <option value="">   ---Выберите запрос---</option>
+        <option value="1">Полный отчет по метагруппам</option>
+        <option value="3">Полный отчет по моделям картриджей</option>
+        <option value="2">Информация по картриджу</option>
+    </select>
+
+
+</form>
+{% if data %}
+  <div style="position: absolute;top: 45px;bottom: 50px;overflow-y: auto;width: 100%;">
+    {% regroup data by god as data_god %}
+  
+      {% for dg in data_god %}
+        <h4 style="text-align: center;">Год: {{ dg.grouper }}</h4>
+          {% regroup dg.list by meta as data_meta %}
+            
+              {% for dmeta in data_meta %}
+              <table class="table">
+              <tr><th rowspan=2 class="text-center" scope="col" style="vertical-align: middle; color: #8713d7; background-color: #f9f0c3;" width="250px">{{ dmeta.grouper }}</th><th colspan=12 class="text-center" scope="col">Месяц</th><th rowspan=2 class="text-center" scope="col" style="vertical-align: middle;">Всего</th></tr>
+              <tr style="color: #b3b3b3;">
+                <th class="text-center" scope="col">01</th>
+                <th class="text-center" scope="col">02</th>
+                <th class="text-center" scope="col">03</th>
+                <th class="text-center" scope="col">04</th>
+                <th class="text-center" scope="col">05</th>
+                <th class="text-center" scope="col">06</th>
+                <th class="text-center" scope="col">07</th>
+                <th class="text-center" scope="col">08</th>
+                <th class="text-center" scope="col">09</th>
+                <th class="text-center" scope="col">10</th>
+                <th class="text-center" scope="col">11</th>
+                <th class="text-center" scope="col">12</th>
+              </tr>
+               
+                    {% regroup dmeta.list by oper as d_act %}
+                      {% for da in d_act %}
+                      <tr>
+                        <td>{{ da.grouper }}</td>
+                        
+                        {% for rr in da.list %}
+                                                 
+                            <td class="sm text-center">{{ rr.m1 }}</td>
+                            <td class="sm text-center">{{ rr.m2 }}</td>
+                            <td class="sm text-center">{{ rr.m3 }}</td>
+                            <td class="sm text-center">{{ rr.m4 }}</td>
+                            <td class="sm text-center">{{ rr.m5 }}</td>
+                            <td class="sm text-center">{{ rr.m6 }}</td>
+                            <td class="sm text-center">{{ rr.m7 }}</td>
+                            <td class="sm text-center">{{ rr.m8 }}</td>
+                            <td class="sm text-center">{{ rr.m9 }}</td>
+                            <td class="sm text-center">{{ rr.m10 }}</td>
+                            <td class="sm text-center">{{ rr.m11 }}</td>
+                            <td class="sm text-center">{{ rr.m12 }}</td>
+                            <td class="sm text-center"
+                            {% if rr.actid == 1 %} style="color:green"{% endif %}
+                            {% if rr.actid == 2 or rr.actid == 5 %} style="color:blue"{% endif %}
+                            {% if rr.actid == 6 %} style="color:red"{% endif %}
+                            {% if rr.actid == 7 %} style="color:orange"{% endif %}
+                            ><b>{{ rr.msum }}</b></td>
+                        
+                        </tr>
+                        {% endfor %}    
+                    {% endfor %}
+                {% endfor %}
+            </table>
+
+      {% endfor %}
+  </div>
+{% endif %}
+
+{% if inf %}
+<br><h4>Статистика действий по картриджу с учетным N {{ isknum }}</h4><br>
+<table class="table">
+  <tr><th class="text-center" width="20%">Время изменения</th><th class="text-center">Что изменилось</th><th class="text-center" width="15%">Кем изменено</th></tr>
+  {% for ii in inf %}
+    <tr><td class="text-center">{{ ii.date_event }}</td><td>{{ ii.izm }}</td><td class="text-center">{{ ii.name_user }}</td></tr>
+  {% endfor %}
+</table>
+{% else %}
+  {% if request.COOKIES.static == "2" and isknum %} 
+    <h5>Картридж с таким номером не зарегистрирован</h5>
+  {% endif%}
+{% endif %}
+</div>
+</div>
+
+<script type="text/javascript">
+  $(function () {
+    $(document).ready(function(){
+          var selectedStat = $.cookie("static");
+          if (selectedStat) {
+            $("#static").val(selectedStat);
+            if (selectedStat=='2'){
+              $("#id_isknum").css("display", "inline");
+              $("#sub").css("display", "inline");
+          }
+          else {
+            $("#id_isknum").css("display", "none");
+              $("#sub").css("display", "none");
+          };
+          $(".sm").each(function(){if(this.textContent=="0"){this.style.color="#d5d2d2"};});
+          }
+
+  $("#static").on("change", function(){
+    var selection = $(this).val();
+    $.cookie("static", selection, {expires: 365, path: "/;SameSite=Lax"});
+    
+    $("form").submit()
+
+  });
+
+  
+});
+
+});
+</script>
+{% endblock %}>

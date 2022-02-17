@@ -1,0 +1,103 @@
+{% extends "base_generic.html" %}
+
+{% block title %}<title>Передача картриджей на заправку</title>{% endblock %}
+
+{% block content %}
+{% include "_modal.html" %}
+{% load static %}
+
+<div class="main" style="width:650px; left:30%;padding: 0 30px;min-height: 400px;">
+    <a href="/"><img src="{% static 'media/pics/cross-small.png' %}" style="width:35px; position: absolute;right: 21px; top: 16px;" title="Закрыть" ></a>
+    <h3>Передача картриджей на заправку</h3>
+    
+<div id="part">
+    
+    {% if empties %}
+    <form id="cartprint" action="" method="post" class="printform" style="position: absolute;right: 0;left: 0;bottom: -15px;top: 0;">
+        {% csrf_token %}
+        <label for="id_contragent">Заправщик
+            <select name="id_contragent" class="w-50 form-control" required="" id="id_contragent"  style="float:inline-end;">
+                <option value="">---------</option>
+              {% for ca in contragent %}
+                <option value="{{ ca.id }}">{{ ca.name_agent }}</option>
+              {% endfor %}
+            </select>
+        </label>
+    <p style="text-align:left;">Отметьте передаваемые картриджи:</p>
+    <div style="position: absolute;top: 65px;bottom: 50px;overflow-y: auto;width: 100%;">
+        <table class="table">
+            <thead>
+                <tr>
+                  <th class="text-center" scope="col"><input type="checkbox" id="sel_all" name="sel_all" class="" value=""></th>
+                  <th class="text-center" scope="col">Модель</th>
+                  <th class="text-center" scope="col">Инв.N</th>
+               
+                </tr>
+            </thead>
+            <tbody>
+            {% for cand in empties %}
+                <tr>
+                    <td><input type="checkbox" id="sel_cand" name="sel_cand" class="" value="{{ cand.id }}"></td>
+                    <td>{{ cand.id_cart }}</td>
+                    <td>{{ cand.inventar }}</td>
+                    
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>    
+      
+<input class="w-125px btn btn-primary" id="cartout" type="button" value="Передать" style="right: 30px;position: absolute;bottom: 0px">
+</form>    
+
+<input class="w-125px btn btn-success" id="printform" type="button" value="Печать" style="left: 30px;position: absolute;bottom: 0px">
+
+
+{% else %}
+<p>Пока нет кандидатов на заправку..</p>
+{% endif %}
+</div>
+</div>
+
+<script type="text/javascript">
+
+$(function () {
+        
+        $('input[name="sel_all"]').on("change", function() {
+            $('input[name="sel_cand"]').each(function(){
+                if ($('input[name="sel_all"]')[0].checked==true) {
+                    $('input[name="sel_cand"]').prop('checked',true)}
+                else {
+                    $('input[name="sel_cand"]').prop('checked',false)}
+                })});
+
+    function Prn(sub=0){
+        var n=0
+        var ca=""
+        ca=$('#id_contragent').val();
+        var ccc="";
+        $('input[name="sel_cand"]').each(function(i){
+            if ($('input[name="sel_cand"]')[i].checked==true) {
+                ccc = ccc + "&cc=" + $(this).val();
+            };
+        });
+
+        if (ca=="") {alert("Укажите заправщика"); n=1;};
+        if (ccc=="") {alert("Не отмечен ни один картридж"); n=1;};  
+     
+        if (n==0) {
+            window.open("{% url 'records-send-print' %}?ca=" + ca + ccc , '', 'scrollbars=1,height='+Math.min(1000, screen.availHeight)+',width='+Math.min(860, screen.availWidth));
+        };        
+        if (n==0 && sub==1) {document.querySelector("form").submit();}        
+   
+    };
+
+        $("#printform").on('click',function() {Prn(0)});
+
+        $("#cartout").on('click',function() {Prn(1)});
+                        
+                
+}); 
+</script>
+        
+{% endblock %}>

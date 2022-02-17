@@ -1,0 +1,71 @@
+
+<header style="border-bottom: 1px solid #eee;">
+
+    <!-- End Messages -->
+    <div class="container" style="max-width:100%;  padding:0">
+  
+      <div class="nav-collapse ">
+        <ul class="nav navbar-nav">
+          {% if user.is_authenticated %}
+          
+            {% if user.is_staff and user.is_active %}
+                <li><b><a href="/admin">{{ user.get_username }}</a></b></li>
+                    {% else %}
+                <li><b>{{ user.get_username }}</b></li>
+            {% endif %}
+          <li class="dropdown"><a href="{% url 'records-list' %}"><span id="plashka-2">Учет</span></a>
+            <ul class="dropdown-menu">
+              <li><a href="{% url 'records-list' %}">В работе</a></li>
+              <li><a href="{% url 'record-change' %}">Прием-выдача</a></li>
+              <li><a href="{% url 'sklad-list' %}">Склад</a></li>
+            </ul>
+          </li>  
+          <li class="dropdown"><a href=""><span id="plashka-1">Заправка</span></a>
+            <ul class="dropdown-menu">    
+              <li><a href="{% url 'records-send' %}">На заправку</a></li>
+              <li><a href="{% url 'records-receive' %}">С заправки</a></li>
+            </ul>
+          </li>
+              {% comment %}<li class="dropdown"><a href="#">Учет</a>
+                <ul class="dropdown-menu">
+                  <li><a href="{% url 'sklad-list' %}">Склад (новые)</a></li>
+                  <li><a href="{% url 'records-list' %}">Картриджи в эксплуатации</a></li>  
+                  <li><a href="{% url 'record-change' %}">Прием - выдача</a></li>
+                </ul>
+              </li>
+              {% endcomment %}
+              <li class="dropdown"><a href=""><span id="plashka-4">Справочники</span></a>
+                  <ul class="dropdown-menu">
+                        <li><a href="{% url 'meta-list' %}">Метагруппы картриджей</a></li>
+                        <li><a href="{% url 'cartriges-list' %}">Модели картриджей</a></li>
+                        <li><a href="{% url 'printers-list' %}">Модели принтеров</a></li>
+                        <li><a href="{% url 'departs-list' %}">Подразделения</a></li>
+                        {% comment %}<li><a href="{% url 'allprinters-list' %}">Принтеры организации</a></li>{% endcomment %}
+                        
+                  </ul></li>
+              <li><a href="{% url 'log-stata' %}"><span id="plashka-3">Статистика</span></a></li>
+              <li><a href="{% url 'logout' %}">Выход</a></li>
+            
+        {% else %}
+            <li><a href="{% url 'login' %}"><span style="padding: 8px 0 8px 15px;vertical-align: middle;display: inline-block;">&#9919; Вход</span></a></li>
+        {% endif %}
+              </ul>
+      </div>
+    
+  
+  </div>
+  </header>
+
+      <!-- Messages -->
+      <div>
+        {% if messages %}
+          {% for message in messages %}
+            <div style="border-radius:0;" {% if message.tags %} class="alert alert-icon alert-{{ message.tags }} alert-dismissible fade show mb-0" role="alert" {% endif %}>
+              {{ message }}
+              <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      </div>

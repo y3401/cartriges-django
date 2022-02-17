@@ -1,0 +1,83 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="y3401@yandex.ru">
+    {% block title %}<title>Система учета картриджей</title>{% endblock %}
+    <!-- Добавление дополнительного статического CSS файла -->
+    {% load static %}
+    
+    <link rel="shortcut icon" type="image/png" href="{% static '/media/favicon.ico' %}">
+    <!--link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}"-->
+    <link rel="stylesheet" href="{% static 'css/css.css' %}">
+
+    {% block scripts %}
+    <script src="{% static 'js/jquery-3.2.1.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+    <script src="{% static 'js/jquery.cookie.js' %}"></script>
+    <script src="{% static 'js/jquery.bootstrap.modal.forms.min.js' %}"></script>
+    {% endblock scripts %}
+
+</head>
+
+<body>
+{% include "_menu.html" %}
+
+{% block content %}{% endblock %}
+{% if all_records %}
+<div class="stata">
+  <table class="table" style="margin-bottom:0;">
+  <tr><th>В работе:</th><td class="text-right">{{ inwork }}</td></tr>
+  <tr><th>В резерве: {% if inreserve < 11 %}! Осталось мало !{% endif %}</th><td class="text-right">{{ inreserve }}</td></tr>
+  {% if isempty != 0 %}<tr style="color: red"><th>Пустые: {% if isempty > 49 %}! Нужна заправка !{% endif %}</th><td class="text-right">{{ isempty }}</td></tr>{% endif %}
+  {% if isload != 0 %}<tr style="color: #860086"><th>На заправке: </th><td class="text-right">{{ isload }}</td></tr>{% endif %}
+  </table>
+  </div> 
+<div class="statistic">
+   
+  <h4>На складе:</h4>
+<table class="table">
+  {% for ss in ost_sklad %}
+    <tr><td>{{ss.name_cart}}</td><td class="text-right">{{ss.cart_count}}</td></tr>
+  {% endfor %}
+</table>
+<h4>Детально:</h4>
+  {% regroup all_records by metatitle as mts %}
+  <table class="table">
+  {% for mt in mts %}
+          
+          <tr><td colspan=3 class="text-center"><b><i>{{ mt.grouper }}</i></b></td></tr>
+              {% for rr in mt.list %}
+              <tr {% if rr.status == 3 %} style="color: red"{% elif rr.status == 4 %}  style="color: magenta"{% endif %}><td>
+                      {% if rr.status == 1 %}<b>Новые:</b> 
+                      {% elif rr.status == 2 %}Установлен: 
+                      {% elif rr.status == 3 %}<b>!</b> Пустой: 
+                      {% elif rr.status == 4 %}На заправке: 
+                      {% elif rr.status == 5 %}<b>Заправлен:</b> 
+                      {% elif rr.status == 6 %}Дефект: 
+                      {% elif rr.status == 7 %}Списано:                     
+                      {% endif %}
+                  </td>
+                  <td> {{ rr.name_cart }} </td> 
+                  <td class="text-right">{% if rr.status == 1 or rr.status == 5 %}<b>{{ rr.cou }}</b>{% else %}{{ rr.cou }}{% endif %} </td>
+              </tr>
+              {% endfor %}
+  
+  {% endfor %}
+  <tr><td colspan=2><b>Всего:</b></td>
+      <td class="text-right"><b>{{ num_rec }}</b></td>
+  </tr>
+</table>
+</div>
+{% endif %}
+
+<div class="capt">
+  <img class="pics" src="{% static 'media/pics/title1.png' %}" alt="">
+</div>
+
+{% block extrascripts %}{% endblock extrascripts %}
+
+</body>
+</html>

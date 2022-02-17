@@ -1,0 +1,15 @@
+{% load static %}
+<div class="modal-header">
+  <h3 class="modal-title">Удаление записи</h3>
+  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
+<p>Вы действительно хотите удалить - "{{ depart.name_depart }}"?</p>
+
+<form action="" method="POST">
+  {% csrf_token %}
+  <input class="w-100 btn btn-danger" type="submit" value="Да, удалить." />
+  
+</form>

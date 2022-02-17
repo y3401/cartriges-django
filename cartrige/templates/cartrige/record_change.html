@@ -1,0 +1,124 @@
+{% extends "base_generic.html" %}
+
+{% block title %}<title>Прием-выдача картриджа</title>{% endblock %}
+
+{% block content %}
+{% include "_modal.html" %}
+{% load static %}
+
+<div class="main" style="width:880px; left:20%;">
+    <a href="/"><img src="{% static 'media/pics/cross-small.png' %}" style="width:35px; position: absolute;right: 21px; top: 16px;" title="Закрыть" ></a>
+    <h2>Прием-выдача картриджа</h2>
+<div id="leftpart">
+    <h4>Прием на замену</h4><br>
+    <form id="invnum" action="" method="get" class="findform">
+        <input type="number" name="isknum" min="0" class="w-125px inl_my form-control-my" placeholder="Учетный N" id="id_isknum">
+        <input class="w-125px btn btn-primary" type="submit" value="Найти" style="vertical-align:unset;">
+    </form>
+    {% if data1 %}
+        
+        <table class="table">
+            <tr><td>Инвентарный N:</td><td><b>{{ data1.inventar }}</b></td></tr>
+            <tr><td>Модель:</td><td>{{ data1.id_cart }}</td></tr>
+            <tr><td>Метагруппа:</td><td>{{ data1.id_cart.metacart }}</td></tr>
+            <tr><td>Установлен:</td><td>{{ data1.id_dep }}</td></tr>
+        </table>
+        
+    {% else %}
+    <p>Если картридж не имеет учетного номера, то его необходимо <a id="add-rec" style="color:#0b5ed7;">зарегистрировать</a>.</p>
+    <p>Если номер присутствует, значит статус у картриджа отличный от "Установлен". Перейдите в <a href="{% url 'records-list' %}?isknum={{ isknum }}">Список учета картриджей</a> и установите статус в значение "Установлен". После этого он будет доступен для выбора</p>
+    {% endif %}
+</div>
+
+<div id="rightpart">
+    <h4>Кандидаты на замену</h4>
+
+<p>Отметьте один из предложенных доступных вариантов:</p>
+<div style="position: absolute;top: 103px;bottom: 50px;overflow-y: auto;width: 96%;">
+<form id="candidate" action="" method="get" class="outform">
+    {% if reserv %}
+    <input type="hidden" name="in_cart" id="in_cart" value="">
+    <table class="table">
+        <thead>
+            <tr>
+              <th class="text-center" scope="col">v</th>
+              <th class="text-center" scope="col">Инв.N</th>
+              <th class="text-center" scope="col">Модель</th>
+              <th class="text-center" scope="col">Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for cand in reserv %}
+            <tr>
+                <td><input type="radio" id="sel_cand" name="sel_cand" class="" value="{{ cand.id }}"></td>
+                <td>{{ cand.inventar }}</td>
+                <td>{{ cand.id_cart }}</td>
+                <td>{% if cand.status == 1 %}Новый{% else %}Заправлен{% endif %}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+
+    {% if skl %}
+    <h4>Остатки на Складе</h4>
+    <table class="table">
+        <thead>
+            <tr>
+              <th class="text-center" scope="col">В работу</th>
+              <th class="text-center" scope="col">Модель</th>
+              <th class="text-center" scope="col">Количество</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for store in skl %}
+            <tr>
+                <td><img class="myopa cart-move bs-modal" data-form-url="{% url 'move-cart2' store.pk %}?dep={{ data1.id_dep_id }}&isk={{ data1.inventar }}" src="/media/pics/data-transfer-magenta.png" alt="Передать в работу" title="Передать в работу" style="width:25px"></td>
+                <td>{{ store.cartriges }}</td>
+                <td>{{ store.cart_count }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    
+    {% endif %}
+    
+</form>
+</div>
+<input class="w-125px btn btn-primary" id="giveout" form="candidate" type="submit" value="Выдать" style="display:none; right: 20px; bottom:0; position: absolute;">
+{% if not reserv and not skl%}
+<p>Пока тут пусто..</p>
+{% endif %}
+</div>
+</div>
+
+
+<script type="text/javascript">
+    const getValueFromUrl = (key) => {
+      const search = new URLSearchParams(window.location.search);
+      const value = search.get(key);
+      return value;
+    };
+    const isknum = getValueFromUrl('isknum');
+    $("#id_isknum").val(isknum);
+    $("#in_cart").val(isknum);
+  
+$('input[name="sel_cand"]').on("change", function() { 
+    if ($('input[name="sel_cand"]').is(':checked')){
+        $("#giveout").css("display", "inline");
+    };
+});
+
+    $(function () {
+
+        $("#add-rec").modalForm({
+            formURL: "{% url 'record-create' %}",
+            modalID: "#modal"
+        });
+        $(".cart-move").each(function () {
+            $(this).modalForm({formURL: $(this).data("form-url")});
+         });
+    });
+</script>
+        
+{% endblock %}>

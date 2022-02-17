@@ -1,0 +1,62 @@
+{% load widget_tweaks %}
+
+{% load static %}
+{% load thumbnail %}
+
+<div class="modal-dialog">
+    <div class="modal-header">
+        <h3  class="modal-title">Картридж</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>        
+
+<form action="" method="post" enctype='multipart/form-data' >
+    {% csrf_token %}
+    <div class="modal-body">
+
+        <div class="{% if form.non_field_errors %}invalid{% endif %} mb-2">
+          {% for error in form.non_field_errors %}
+            {{ error }}
+          {% endfor %}
+        </div>
+
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {% render_field field class="form-control" %}
+                <div class="{% if field.errors %} invalid{% endif %}">
+                    {% for error in field.errors %}
+                        <p class="help-block">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    
+        <input class="w-100 btn btn-lg btn-primary" type="submit" value="Сохранить">    
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    document.querySelectorAll(".form-group")[3].innerHTML='<label for=\"id_photo\">Фото:</label>{% if cartriges.photo %}  <span id=\"now\">Сейчас: <a href=\"/media/{{ cartriges.photo }}\">{{ cartriges.photo }}</a></span> <label for \"photo-clear_id\" style=\"position: absolute; right: 40px;\">Удалить? <input type=\"checkbox\" name=\"photo-clear\" id=\"photo-clear_id\"></label> {% endif %} <table style=\"margin: 0 auto;width: 95%;\">    <tr height=\"130px\"><td id=\"td-1\">  <div id=\"block-img\"> {% if cartriges.photo %} <a href=\"/media/{{ cartriges.photo }}\" style=\"opacity:1;\"><img id=\"blah\" src=\"{% thumbnail cartriges.photo 150x0 %}\" alt=\"Фото\"></a> {% else %}  <img id=\"blah\" src=\"\" alt=\"\">  {% endif %}  </div>  <input type=\"file\" name=\"photo\" accept=\"image/*\" id=\"id_photo\" style=\"width:90%;margin: 2px 20px 6px 20px;\">';
+
+    document.querySelectorAll(".form-group")[0].setAttribute("style","width: 49%;display: inline-block;");
+    document.querySelectorAll(".form-group")[1].setAttribute("style","width: 49%;display: inline-block;");
+        
+
+    $(function () {
+    function readURL(input) {  
+        if (input.files && input.files[0]) {    
+            var reader = new FileReader();
+            console.log(reader);    
+            reader.onload = function(e) {
+                $('#blah').attr('src', e.target.result);
+                    }
+            reader.readAsDataURL(input.files[0]);  
+                    }}
+    $(".id_photo").change(function() {
+            readURL(this);
+    });
+});
+</script>

@@ -1,0 +1,73 @@
+{% extends "base_print.html" %}
+{% load widget_tweaks %}
+{% load static %}
+{% block title %}<title>Список передаваемых картриджей на заправку</title>{% endblock %}
+
+{% block content %}
+<div class="main-print">
+<table style="width:100%;border-collapse: unset; border:none;">
+<tr><td>
+  "УТВЕРЖДАЮ"<br><br> _______________ {{ organ.fio_nach }}<br>
+    {{ dt }}г.
+</td><td style="width:300px;text-align:center;">  
+    <strong>{{ organ.name_agent_full}}</strong><br>
+    {{ organ.address }}<br>
+    <strong>Тел.:</strong> {{ organ.phone }}<br>
+    <strong>Email:</strong> {{ organ.email }}<br><p>
+    
+</td></tr>  
+</table>
+<p></p>
+  <h1 class="text-center">Список картриджей, передаваемых на заправку</h1>
+  
+<br>
+<table class="table" style="width:100%; font-size:14pt">
+  <thead>
+    <tr>
+      <th class="text-center" scope="col">Модель</th>
+      <th class="text-center" scope="col">Учетные номера</th>
+    </tr>
+  </thead>
+{% if cartriges %}
+<tbody>
+  {% regroup cartriges by id_cart as cartr %}
+  
+<tr>
+  {% for crt in cartr %}
+    <td class="text-center">{{ crt.grouper }}</td>
+    <td class="plr-20 bord-r text-right">
+      {% for rr in crt.list %}
+      □{{ rr.inventar }} 
+      {% endfor %}
+    </td>
+</tr>
+{% endfor %}
+<tr>
+  <th class="text-center">Всего: </th>
+  <th class="plr-20 text-right">{{ reccount }}</th>
+</tr>
+</tbody>
+{% endif %}
+</table>
+<p></p>
+<table style="width:100%;border-collapse: unset; border:none;">
+  <tr><td style="vertical-align: top;">  
+<b>Отдел:</b> {{ nach.name_depart }}</br>
+<b>Выдал:</b> _____________ {{ user.first_name }} {{ user.last_name }}</br></br>
+<b>Начальник:</b> _____________ {{ nach.fio }}
+</td><td style="width:50%;">
+<div>
+  <b>Получатель:</b> {{ partner.name_agent_full }}<br> 
+    <b>Реквизиты контрагента:</b> {{ partner.inn }}<br>
+    <b>Адрес:</b> {{ partner.address }}<br> 
+    <b>Получил:</b> __________{{ partner.otvet }}
+</div>
+</td></tr></table>
+</div>
+<input class="w-125px btn btn-success" type="button" value="Печать" onclick="window.print();">
+
+{% endblock content %}
+
+
+
+

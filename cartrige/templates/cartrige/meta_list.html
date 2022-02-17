@@ -1,0 +1,99 @@
+{% extends "base_generic.html" %}
+
+{% block title %}<title>Список метагрупп картриджей</title>{% endblock %}
+
+{% block content %}
+{% include "_modal.html" %}
+{% load static %}
+
+<div class="main">
+    <a href="/"><img src="{% static 'media/pics/cross-small.png' %}" style="width:35px; position: absolute;right: 21px; top: 16px;" title="Закрыть справочник" ></a>
+    <h2>Список метагрупп картриджей</h2>
+    
+    {% if user.is_staff %}
+
+    <span id="add-span" style="position: absolute; right: 55px; top: 80px;">Добавить метагруппу
+      <img id="add-dep" src="/media/pics/add-green128.png" alt="Добавить" title="Добавить" style="width:25px; vertical-align: middle;">
+    </span>
+    {% endif %}
+  
+<div class="listok"
+
+{% if object_list %}
+<ol>
+
+{% for meta in object_list %}
+
+  <li class="li-0"> 
+    <table id="listok" cellpadding="5" cellspacing="5" style="height: 62px;">
+      <tr>
+
+        <td id="t-num">
+            <h4 style="color: #686875;">
+                {{ forloop.counter0|add:1 }}.
+            </h4>
+        </td>
+        <td id="t-header">
+            <h4>
+                <b>{{ meta.metatitle }}</b>
+            </h4>
+            <span id="c-gray">Картриджи в группе:</span> 
+            {% for cc in meta.cartriges_set.all %}
+              <b>{{ cc }}</b>{% if not forloop.last %}, {% endif %}
+            {% endfor %}    
+
+            
+        </td>
+
+        {% if perms.cartrige.can_mark_returned %}
+            <td id="t-edit">
+                <img class="myopa update-dep bs-modal" data-form-url="{% url 'meta-update' meta.pk %}" src="/media/pics/edit-blue128.png" alt="Редактировать" title="Редактировать" style="width:25px">
+            </td>
+            <td id="t-del">
+                <img class="myopa delete-dep" data-form-url="{% url 'meta-delete' meta.pk %}" src="/media/pics/trash-red128.png" id="delc" alt="Удалить" title="Удалить" style="width:25px">
+            </td>
+        {% else %}
+              <td id="t-edit"></td>
+              <td id="t-del"></td>
+        {% endif  %}
+      </tr>
+
+    </table>
+
+  </li>
+
+{% endfor %}
+
+</ol>
+
+{% else %}
+<p>Еще тут ничего нет</p>
+{% endif %} 
+</div>
+{% include "paginator.html" %}
+</div>
+
+<script type="text/javascript">
+
+$(function () {
+
+// Update buttons
+$(".update-dep").each(function () {
+    $(this).modalForm({formURL: $(this).data("form-url")});
+});
+
+// Delete buttons - formURL is retrieved from the data of the element
+$(".delete-dep").each(function () {
+    $(this).modalForm({formURL: $(this).data("form-url"), isDeleteForm: true});
+});
+
+// Create button opens form in modal with id="create-modal"
+$("#add-dep").modalForm({
+    formURL: "{% url 'meta-create' %}",
+    modalID: "#modal"
+});
+
+});
+</script>
+
+{% endblock %}>

@@ -1,0 +1,34 @@
+﻿{% extends "base_generic.html" %}
+
+{% block title %}<title>Вход в систему учета 'Картриджи'</title>{% endblock %}
+
+{% block content %}
+<div class="logging">
+{% if form.errors %}
+  <p style="color:red">Имя пользователя или пароль не совпадают! Пробуйте снова ..</p>
+{% endif %}
+
+{% if next %}
+  {% if user.is_authenticated %}
+    <p>Ваш аккаунт не имеет доступа на эту страницу. Пожалуйста, войдите под зарегистрированнм логином.</p>
+  {% else %}
+    <p>Пожалуйста, залогинтесь, чтобы увидеть эту страницу.</p>
+  {% endif %}
+{% endif %}
+<center>
+<form method="post" action="{% url 'login' %}">
+{% csrf_token %}
+<div class="form-group">
+  <input type="text" name="username" autofocus="" autocapitalize="none"  maxlength="150" required="" id="id_username" placeholder="Логин"> <!--autocomplete="username"-->
+</div>
+<div class="form-group">
+  <input type="password" name="password" autocomplete="current-password" required="" id="id_password" placeholder="Пароль">
+</div>
+
+<button type="submit" class="w-100 btn btn-lg btn-primary">Войти &rarr;</button>
+<input type="hidden" name="next" value="{{ next }}" />
+</form>
+<p class="mb-3 text-muted">©Y3401 2022</p>
+
+</div>
+{% endblock %}

@@ -1,0 +1,98 @@
+{% extends "base_generic.html" %}
+
+{% block title %}<title>Список подразделений организации</title>{% endblock %}
+
+{% block content %}
+{% include "_modal.html" %}
+{% load static %}
+
+<div class="main">
+    <a href="/"><img src="{% static 'media/pics/cross-small.png' %}" style="width:35px; position: absolute;right: 21px; top: 16px;" title="Закрыть справочник" ></a>
+    <h2>Список подразделений</h2>
+    
+    {% if user.is_staff %}
+
+    <span id="add-span" style="position: absolute; right: 55px; top: 80px;">Добавить подразделение организации
+      <img id="add-dep" src="/media/pics/add-green128.png" alt="Добавить" title="Добавить" style="width:25px; vertical-align: middle;">
+    </span>
+    {% endif %}
+  
+<div class="listok"
+
+{% if depart_list %}
+<ol>
+
+{% for dep in depart_list %}
+
+  <li class="li-0"> 
+    <table id="listok" cellpadding="5" cellspacing="5" style="height: 62px;">
+      <tr>
+
+        <td id="t-num">
+            <h4 style="color: #686875;">
+                {{ forloop.counter0|add:1 }}.
+            </h4>
+        </td>
+        <td id="t-header">
+            <h4>
+                <b>{{ dep.name_depart }}</b>
+            </h4>
+            
+            {% if dep.fio %}
+                {{ dep.fio }}
+            {% endif %}
+            
+        </td>
+
+        {% if perms.cartrige.can_mark_returned %}
+            <td id="t-edit">
+                <img class="myopa update-dep bs-modal" data-form-url="{% url 'departs-update' dep.pk %}" src="/media/pics/edit-blue128.png" alt="Редактировать" title="Редактировать" style="width:25px">
+            </td>
+            <td id="t-del">
+                <img class="myopa delete-dep" data-form-url="{% url 'departs-delete' dep.pk %}" src="/media/pics/trash-red128.png" id="delc" alt="Удалить" title="Удалить" style="width:25px">
+            </td>
+        {% else %}
+              <td id="t-edit"></td>
+              <td id="t-del"></td>
+        {% endif  %}
+      </tr>
+
+    </table>
+
+  </li>
+
+{% endfor %}
+
+</ol>
+
+{% else %}
+<p>Еще тут ничего нет</p>
+{% endif %} 
+</div>
+
+</div>
+
+<script type="text/javascript">
+
+$(function () {
+
+// Update buttons
+$(".update-dep").each(function () {
+    $(this).modalForm({formURL: $(this).data("form-url")});
+});
+
+// Delete buttons - formURL is retrieved from the data of the element
+$(".delete-dep").each(function () {
+    $(this).modalForm({formURL: $(this).data("form-url"), isDeleteForm: true});
+});
+
+// Create button opens form in modal with id="create-modal"
+$("#add-dep").modalForm({
+    formURL: "{% url 'departs-create' %}",
+    modalID: "#modal"
+});
+
+});
+</script>
+
+{% endblock %}>

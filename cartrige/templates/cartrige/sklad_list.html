@@ -1,0 +1,137 @@
+{% extends "base_generic.html" %}
+
+{% block title %}<title>Список картриджей на складе (новые)</title>{% endblock %}
+
+{% block content %}
+{% include "_modal.html" %}
+{% load static %}
+
+<div class="main">
+    <a href="/"><img src="{% static 'media/pics/cross-small.png' %}" style="width:35px; position: absolute;right: 21px; top: 16px;" title="Закрыть справочник" ></a>
+    <h2>Список картриджей на складе (новые)</h2>
+    
+    {% if user.is_staff %}
+
+    <span id="add-span" style="position: absolute; right: 55px; top: 80px;">Добавить позицию
+      <img id="add-sklad" src="/media/pics/add-green.png" alt="Добавить" title="Добавить" style="width:25px; vertical-align: middle;">
+    </span>
+    {% endif %}
+  
+  <form action="" method="get">
+   
+    <input id="cb-0" name="cb0" value="on" type="checkbox" {% if request.COOKIES.cb0 == "on" %} checked{% endif%}> Скрыть пустые
+  </form>
+
+  <div class="listok">
+    <ol start= "{{ page_obj.start_index }}">
+    {% if sklad_list %}
+    <div class="col-12 mb-3">
+    <table id="records-table" class="table">
+        <thead>
+        <tr>
+          <th class="text-center" scope="col">#</th>
+          <th class="text-center" scope="col">Название по бухучету</th>
+          <th class="text-center" scope="col">Модель картриджа</th>
+          <th class="text-center" scope="col">Количество</th>
+          <th class="text-right" scope="col">Действие</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for sklad in sklad_list %}
+        
+          <tr>
+            <th class="text-center" scope="row">{{ forloop.counter0|add:page_obj.start_index }}</th>
+            {% if sklad.cart_count == 0 %}
+                <td class="text-center" style="color: lightgray;">{{ sklad.cart_buh }}</td>
+                <td class="text-center" style="color: lightgray;">{{ sklad.cartriges }}</td>
+                <td class="text-center" style="color: lightgray;">{{ sklad.cart_count }}</td>
+            {% else %}
+                <td class="text-center">{{ sklad.cart_buh }}</td>
+                <td class="text-center">{{ sklad.cartriges }}</td>
+                <td class="text-center">{{ sklad.cart_count }}</td>
+            {% endif %}
+            <td class="text-right">
+               
+                {% if perms.cartrige.can_mark_returned %}    
+                    {% if sklad.cart_count > 0 %}
+                        <img class="myopa cart-move bs-modal" data-form-url="{% url 'move-cart' sklad.pk %}" src="/media/pics/data-transfer-magenta.png" alt="Передать в работу" title="Передать в работу" style="width:25px">
+                    {% endif %}
+
+                    <img class="myopa update-sklad bs-modal" data-form-url="{% url 'sklad-update' sklad.pk %}" src="/media/pics/edit-blue128.png" alt="Редактировать" title="Редактировать" style="width:25px">
+                    <img class="myopa delete-sklad" data-form-url="{% url 'sklad-delete' sklad.pk %}" src="/media/pics/trash-red128.png" id="delc" alt="Удалить" title="Удалить" style="width:25px">
+                {% endif  %}
+            </td>
+          </tr>
+        {% endfor %}
+      
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p>Еще тут ничего нет</p>
+    {% endif %}
+     
+    </div>
+    {% include "paginator.html" %}
+    </div>
+
+
+<script type="text/javascript">
+    cb=document.querySelector("#cb-0");
+    cb.addEventListener('change',function(){
+        
+        if (cb.checked) {
+            document.cookie = "cb0=on;samesite=lax;path='/';max-age=31536000 ";}
+        else {
+            document.cookie = "cb0=off;samesite=lax;path='/';max-age=31536000 ";
+        };
+        document.querySelector("form").submit();
+    });
+
+    $(function () {
+
+        function getCookie(cName) {
+            const name = cName + "=";
+            const cDecoded = decodeURIComponent(document.cookie); //to be careful
+            const cArr = cDecoded .split('; ');
+            let res;
+            cArr.forEach(val => {
+                if (val.indexOf(name) === 0) res = val.substring(name.length);
+            })
+            return res;
+      };
+
+        $(document).ready(function(){
+            var cb0 = getCookie('cb0'); //#document.cookie.match(/select=(.+?);/);
+            if (cb0=='on') {
+                $('#cb-0').checked=true;
+           }
+            else {
+                $('#cb-0').checked=false;
+            };
+        });
+
+// Update buttons
+$(".update-sklad").each(function () {
+    $(this).modalForm({formURL: $(this).data("form-url")});
+});
+
+$(".cart-move").each(function () {
+   $(this).modalForm({formURL: $(this).data("form-url")});
+});
+
+// Delete buttons - formURL is retrieved from the data of the element
+$(".delete-sklad").each(function () {
+    $(this).modalForm({formURL: $(this).data("form-url"), isDeleteForm: true});
+});
+
+// Create button opens form in modal with id="create-modal"
+$("#add-sklad").modalForm({
+    formURL: "{% url 'sklad-create' %}",
+    modalID: "#modal"
+});
+
+});
+</script>
+
+{% endblock %}>

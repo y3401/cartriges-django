@@ -1,0 +1,169 @@
+{% extends "base_generic.html" %}
+
+{% block title %}<title>Список картриджей в эксплуатации</title>{% endblock %}
+
+{% block content %}
+{% include "_modal.html" %}
+{% load static %}
+
+<div class="main">
+    <a href="/"><img src="{% static 'media/pics/cross-small.png' %}" style="width:35px; position: absolute;right: 21px; top: 16px;" title="Закрыть" ></a>
+    <h2>Список учтенных картриджей</h2>
+    
+    {% if user.is_staff %}
+
+    <span id="add-span" style="position: absolute; right: 55px; top: 75px;">Добавить новый
+      <img id="add-rec" src="/media/pics/add-green128.png" alt="Добавить" title="Добавить" style="width:25px; vertical-align: middle;">
+    </span>
+    {% endif %}
+
+    {% if perms.cartrige.can_mark_returned %}          
+            
+    <form id="poisk" action="" method="get" class="findform">
+     Фильтр: 
+        {{ form }}
+      </form>
+
+    {% endif %}
+<div class="listok">
+
+{% if records_list %}
+<div class="col-12 mb-3">
+<table id="records-table" class="table">
+    <thead>
+    <tr>
+      {% with request.COOKIES.ord as sort %}
+      <th class="text-center" scope="col">#</th>
+      <th class="text-center ord" scope="col" data-sort="1">Учетный N{% if sort == "1" %}&darr;{% elif sort == "-1" %}&uarr;{% endif %}</th>
+      <th class="text-center ord" scope="col" data-sort="2">Картридж{% if sort == "2" %}&darr;{% elif sort == "-2" %}&uarr;{% endif %}</th>
+      <th class="text-center ord" scope="col" data-sort="3">Размещение{% if sort == "3" %}&darr;{% elif sort == "-3" %}&uarr;{% endif %}</th>
+      <th class="text-center ord" scope="col" data-sort="4">Статус{% if sort == "4" %}&darr;{% elif sort == "-4" %}&uarr;{% endif %}</th>
+      <th class="text-center ord" scope="col" data-sort="5">Кол-во заправок{% if sort == "5" %}&darr;{% elif sort == "-5" %}&uarr;{% endif %}</th>
+      {% comment "" %}<th class="text-center ord" scope="col" data-sort="6">Дата ввода{% if sort == "6" %}&darr;{% elif sort == "-6" %}&uarr;{% endif %}</th>{% endcomment %}
+      <th class="text-center ord" scope="col" data-sort="7">Метагруппа{% if sort == "7" %}&darr;{% elif sort == "-7" %}&uarr;{% endif %}</th>
+      <th class="text-right" scope="col">Действие</th>
+      {% endwith %}
+    </tr>
+    </thead>
+    <tbody>
+    {% for rec in records_list %}
+    
+      <tr>
+        <th class="text-center" scope="row">{{ forloop.counter0|add:page_obj.start_index }}</th>
+        <td class="text-center">{{ rec.inventar }}</td>
+        <td class="text-center">{{ rec.id_cart }}</td>
+        <td class="text-center">{{ rec.id_dep }}</td>
+
+{% with rec.status as rs %}
+
+{% if rs == 7 %}
+    <td class="text-center" style="background-color: #ca767685">
+{% elif rs == 6 %}
+    <td class="text-center" style="background-color: #ff909085">
+{% elif rs == 5 %}
+    <td class="text-center" style="background-color: #afdbaf85">
+{% elif rs == 4 %}
+    <td class="text-center" style="background-color: #e092fd85">
+{% elif rs == 3 %}
+    <td class="text-center" style="background-color: #95959585">
+{% elif rs == 2 %}
+    <td class="text-center" style="background-color: #76b8ff85">
+{% elif rs == 1 %}
+    <td class="text-center" style="background-color: #fafaf0">
+{% endif %}
+
+{% endwith %} 
+{{ rec.get_status_display }}</td>
+        <td class="text-center" style="background-color: unset">{{ rec.charge_num }}</td>
+        {% comment %}<td class="text-center">{{ rec.date_in|date:"d.m.Y" }}</td>{% endcomment %}
+        <td class="text-center">{{ rec.id_cart.metacart }}</td>
+        <td class="text-right">
+
+          {% if perms.cartrige.can_mark_returned %} 
+          {% if rec.status == 2 %}         
+          <a href="{% url 'record-change' %}?isknum={{ rec.inventar }}"><img class="" src="/media/pics/data-transfer-magenta.png" alt="Замена" title="Замена" style="width:25px"></a> 
+          {% endif %} 
+          <img class="myopa update-rec bs-modal" data-form-url="{% url 'record-update' rec.pk %}?page={{ pn }}" src="/media/pics/edit-blue128.png" id="a-img" alt="Редактировать" title="Редактировать" style="width:25px">
+            {% comment "" %}
+            <img class="myopa delete-rec bs-modal" data-form-url="{% url 'record-delete' rec.pk %}?page={{ pn }}" src="/media/pics/delete-red128.png" id="a-img" alt="Удалить" title="Удалить" style="width:25px">
+            {% endcomment %}
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  
+    </tbody>
+  </table>
+</div>
+{% else %}
+<p>Еще тут ничего нет</p>
+{% endif %}
+ 
+</div>
+{% include "paginator.html" %}
+</div>
+
+<script type="text/javascript">
+ 
+  $(function () {
+$(document).ready(function(){
+      var selectedStat = $.cookie("stat");
+      if (selectedStat) {
+        $("#id_stat").val(selectedStat);
+      }
+
+      var selectedUsed = $.cookie("dept");
+      if (selectedUsed) {
+        $("#id_dept").val(selectedUsed);
+      }
+
+
+      $("#id_stat").on("change", function(){
+        var selection = $(this).val();
+        $.cookie("stat", selection, {expires: 365, path: "/;SameSite=Lax"});
+        $("form").submit()
+      });
+
+      $("#id_dept").on("change", function(){
+        var selection = $(this).val();
+        $.cookie("dept", selection, {expires: 365, path: "/;SameSite=Lax"});
+        $("form").submit()
+
+      });
+
+      $(".ord").on("click", function(){
+        var selectedOrd = $.cookie("ord");
+        var ord = $(this).data('sort');
+        if (ord==selectedOrd) {ord=-ord};
+        $.cookie("ord", ord, {expires: 365, path: "/;SameSite=Lax"});
+        $("form").submit()
+      });
+    });
+
+
+
+
+// Update buttons
+$(".update-rec").each(function () {
+    $(this).modalForm({formURL: $(this).data("form-url")});
+});
+
+// Delete buttons - formURL is retrieved from the data of the element
+$(".delete-rec").each(function () {
+    $(this).modalForm({formURL: $(this).data("form-url"), isDeleteForm: true});
+});
+
+//$(".change-cart").each(function () {
+//  $(this).modalForm({formURL: $(this).data("form-url")});
+//});
+
+// Create button opens form in modal with id="create-modal"
+$("#add-rec").modalForm({
+    formURL: "{% url 'record-create' %}",
+    modalID: "#modal"
+});
+
+});
+</script>
+
+{% endblock %}>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8">
+    <meta name="author" content="y3401@yandex.ru">
+    {% block title %}<title>Система учета картриджей</title>{% endblock %}
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/css.css' %}">
+    <style>
+      body {
+        max-width: 800px;
+        margin: 0 auto;
+        padding-left:20mm;
+        background:none;
+      }
+
+      h1 {
+        color: #000;
+        border: none;
+      }
+
+      td,th,tr,table {
+        /*border: 1px solid #777;*/
+        background-color: #fff;
+      }
+
+      thead,tbody {
+        border: 1px solid #777;
+      }
+      
+      .table thead th {
+        vertical-align: bottom;
+        border-bottom: 1px solid #777;
+      }
+
+      .table td, .table th {
+        vertical-align: top;
+        border: 1px solid #777;
+      }
+      h1 {
+        font-size: 18pt;
+        text-align: center;
+      }
+
+      p,ul,ol,dl,address {
+        font-size: 14pt;
+      }
+
+      p, li, dd, dt, address {
+        line-height: 1.5;
+      }
+
+      table td.plr-20, table th.plr-20 {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .main-printer {
+        max-width: 800px;
+      }
+
+
+    </style>
+  </head>
+  <body>
+    {% block content %}
+    {% endblock content %}
+</body>
+</html>
+ 

@@ -1,0 +1,42 @@
+{% load static %}
+{% load thumbnail %}
+
+<div class="modal-dialog">
+    <div class="modal-header">
+        <h3  class="modal-title">Принтер</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+
+  <form action="" method="post" enctype='multipart/form-data'>
+    {% csrf_token %}
+    {{ form.as_p }}
+
+<input class="w-100 btn btn-lg btn-primary" type="submit" value="Сохранить">
+</form>
+</div>
+
+<script type="text/javascript">
+    var np=document.querySelector("#id_name_printer");
+    np.placeholder="Модель принтера";
+    np.className="frm";
+
+    document.querySelectorAll("p")[1].innerHTML='<label for=\"id_photo_prn\">Фото:</label>{% if printers.photo_prn %}            <span id=\"now\">Сейчас: <a href=\"/media/{{ printers.photo_prn }}\">{{ printers.photo_prn }}</a></span> <label for \"photo-clear_id\" style=\"position: absolute; right: 40px;\">Удалить? <input type=\"checkbox\" name=\"photo_prn-clear\" id=\"photo-clear_id\"></label> {% endif %} <table style=\"margin: 0 auto;width: 95%;\">    <tr height=\"130px\"><td id=\"td-1\">  <div id=\"block-img\"> {% if printers.photo_prn %} <a href=\"/media/{{ printers.photo_prn }}\" style=\"opacity:1;\"><img id=\"blah\" src=\"{% thumbnail printers.photo_prn 150x0 %}\" alt=\"Фото\"></a> {% else %}  <img id=\"blah\" src=\"\" alt=\"\">  {% endif %}  </div>  <input type=\"file\" name=\"photo_prn\" accept=\"image/*\" id=\"id_photo_prn\" style=\"width:90%;margin: 2px 20px 6px 20px;\">';
+
+    $(function () {
+        function readURL(input) {  
+            if (input.files && input.files[0]) {    
+                var reader = new FileReader();
+                console.log(reader);    
+                reader.onload = function(e) {
+                    $('#blah').attr('src', e.target.result);
+                        }
+                reader.readAsDataURL(input.files[0]);  
+                        }}
+        $("#id_photo_prn").change(function() {
+                readURL(this);
+        });
+    });
+ 
+</script>

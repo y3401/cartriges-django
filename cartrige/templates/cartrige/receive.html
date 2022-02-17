@@ -1,0 +1,113 @@
+{% extends "base_generic.html" %}
+
+{% block title %}<title>Прием картриджей с заправки</title>{% endblock %}
+
+{% block content %}
+{% include "_modal.html" %}
+{% load static %}
+
+<div class="main" style="width:650px; left:30%;padding: 0 30px;min-height: 400px;">
+    <a href="/"><img src="{% static 'media/pics/cross-small.png' %}" style="width:35px; position: absolute;right: 21px; top: 16px;" title="Закрыть" ></a>
+    <h3>Прием картриджей с заправки</h3>
+    
+<div id="part">
+   <form id="ca" action="" method="get" class="ca" style="position: absolute;right: 0;left: 0;top: 0;">
+    <label for="id_contragent">Заправщик
+        <select name="id_contragent" class="w-50 form-control" required="" id="id_contragent"  style="float:inline-end;">
+            <option value="">---------</option>
+          {% for ca in contragent %}
+            <option value="{{ ca.id }}">{{ ca.name_agent }}</option>
+          {% endfor %}
+        </select>
+    </label>
+</form>
+{% if empties %}
+    <form id="cart_in" action="" method="post" class="printform" style="position: absolute;right: 0;left: 0;bottom: -15px;top: 45px;">
+        {% csrf_token %}
+        
+
+    <p style="text-align:left;position: absolute;top: -21px;left: 20px;">Отметьте полученные картриджи.<br> Если картридж не имеет учетного номера, то <span id="add-rec" style="color:blue;cursor:pointer;"><b>зарегистрируйте</b></span> его</p>
+    <div style="position: absolute;top: 45px;bottom: 50px;overflow-y: auto;width: 100%;">
+        <table class="table">
+            <thead>
+                <tr>
+                  <th class="text-center" scope="col"><input type="checkbox" id="sel_all" name="sel_all" class="" value=""></th>
+                  <th class="text-center" scope="col">Инв.N</th>
+                  <th class="text-center" scope="col">Модель</th>
+                  <th class="text-center" scope="col">Заправщик</th>
+               
+                </tr>
+            </thead>
+            <tbody>
+            {% for cand in empties %}
+                <tr>
+                    <td><input type="checkbox" id="sel_cand" name="sel_cand" class="" value="{{ cand.id }}"></td>
+                    <td>{{ cand.inventar }}</td>
+                    <td>{{ cand.id_cart }}</td>
+                    <td>{{ cand.c_agent }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>    
+      
+<input class="w-125px btn btn-primary" id="cartin" type="button" value="Принять" style="right: 30px;position: absolute;bottom: 0px">
+</form>    
+
+
+{% else %}
+<p style="text-align:left;position: absolute;top: 30px;left: 20px;">Нет принимаемых картриджей от этого заправщика..<br> Если картридж не имеет учетного номера, то <span id="add-rec" style="color:blue;cursor:pointer;"><b>зарегистрируйте</b></span> его</p>
+{% endif %}
+</div>
+</div>
+
+<script type="text/javascript">
+
+$(function () {
+    
+    $(document).ready(function(){
+        var c_a = {{ ca }}
+        $('#id_contragent').val(c_a);
+    });
+    
+    
+        $('input[name="sel_all"]').on("change", function() {
+            $('input[name="sel_cand"]').each(function(){
+                if ($('input[name="sel_all"]')[0].checked==true) {
+                    $('input[name="sel_cand"]').prop('checked',true)}
+                else {
+                    $('input[name="sel_cand"]').prop('checked',false)}
+                })});
+
+    function Prn(sub=0){
+        var n=0
+   
+        //ca=$('#id_contragent').val();
+        var ccc="";
+        $('input[name="sel_cand"]').each(function(i){
+            if ($('input[name="sel_cand"]')[i].checked==true) {
+                ccc = ccc + "&cc=" + $(this).val();
+            };
+        });
+
+        if (ccc=="") {alert("Не отмечен ни один картридж"); n=1;};  
+        if (n==0) {$("#cart_in").submit();}        
+    };
+
+       
+
+        $("#cartin").on('click',function() {Prn()});
+                        
+        $("#add-rec").modalForm({
+            formURL: "{% url 'record-create' %}",
+            modalID: "#modal"
+        });
+        
+        $("#id_contragent").on("change", function(){
+            var selection = $(this).val();
+            $(".ca").submit();
+          });
+}); 
+</script>
+        
+{% endblock %}>
