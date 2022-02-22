@@ -860,8 +860,11 @@ def LogStata(request):
     static = request.GET.get('static',default="")
     isknum = request.GET.get('isknum',default="")
     if static == "":
-        static=request.COOKIES['static']
-
+        try:
+            static=request.COOKIES['static']
+        except:
+            static=""
+            
     query3 = '''DROP TABLE IF EXISTS `cartrige_tmp`;
 CREATE TABLE `cartrige_tmp` (
   `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,

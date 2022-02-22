@@ -105,23 +105,3 @@ class RecordsModelForm(BSModalModelForm):
         widgets = {"date_out" : forms.TextInput(attrs = {"type" : "date"}), 
         "charge_num" : forms.NumberInput(attrs = {"type" : "number", "min" : 0})}
 
-
-
-'''
-class MyAuthForm(AuthenticationForm):
-    class Meta:
-        model = User
-        fields = ['username','password']
-    def __init__(self, *args, **kwargs):
-        super(MyAuthForm, self).__init__(*args, **kwargs)
-        self.fields['username'].widget = forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Логин'})
-        self.fields['password'].widget = forms.PasswordInput(attrs={'class': 'form-control', 'placeholder':'Пароль'}) 
-
-class CartUpdate(ModelForm):
-    class Meta:
-        model = Cartriges
-        fields = ['name_cart', 'comment', 'photo']
-        
-    def __init__(self, *args, **kwargs):
-        super(MyAuthForm, self).__init__(*args, **kwargs)
-'''
