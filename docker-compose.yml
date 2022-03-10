@@ -1,19 +1,28 @@
-version: '3.9'
 
+version: ‘3.9’
 services:
-  django-bootstrap-modal-forms:
-    container_name: cartriges-django
+  db:
+    image: mysql:8.0.27
+    container_name: db
+    environment:
+      MYSQL_ROOT_PASSWORD: paro1_mysq1
+      MYSQL_DATABASE: carts
+      MYSQL_USER: mysql
+      MYSQL_PASSWORD: musql_0z
+    ports:
+      - '3306:3306'
+    volumes:
+      - dbdata:/var/lib/mysql
+
+
+  cartrige:
+    container_name: cartrige
     build: .
     command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
+      sh -c "python manage.py runserver 0.0.0.0:8000"
     ports:
       - 8000:8000
     volumes:
-      - persist_database:/usr/src/app/database
-      - ./bootstrap_modal_forms:/usr/src/app/bootstrap_modal_forms
-      - ./examples:/usr/src/app/examples
-      - ./tests:/usr/src/app/tests
-
+      - ./cartrige:/usr/src/app/cartrige
 volumes:
-  persist_database:
+  dbdata:
