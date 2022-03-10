@@ -1,1 +1,0 @@
-DROP TABLE IF EXISTS `carts`.`cartrige_tmp`;
