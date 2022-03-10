@@ -94,9 +94,9 @@ DATABASES = {
 #        'NAME': BASE_DIR / 'db.sqlite3',
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'carts',
-        'USER': 'mysql',
-        'PASSWORD': 'mysql',
-        'HOST': '127.0.0.1',
+        'USER': 'root',
+        'PASSWORD': 'paro1_mysq1',
+        'HOST': '172.20.0.1',
         'PORT': '3306',
 
     }

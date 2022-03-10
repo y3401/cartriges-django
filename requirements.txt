@@ -1,10 +1,12 @@
-Django==2.2.24
+Django==3.2.7
 django-widget-tweaks==1.4.2
 selenium==3.14.0
 pytz==2018.5
 django-phonenumber-field[phonenumberslite]==6.0.0
 easy-thumbnails==2.8.0
 django-bootstrap-modal-forms==2.2.0
-mysqlclient==8.0.27
+mysql-connector==2.2.9
+django-mysql==2.2.0
+mysqlclient==2.1.0
 django-cleanup==5.2.0
 numpy==1.20.3
