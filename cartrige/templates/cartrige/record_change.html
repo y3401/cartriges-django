@@ -22,6 +22,11 @@
             <tr><td>Модель:</td><td>{{ data1.id_cart }}</td></tr>
             <tr><td>Метагруппа:</td><td>{{ data1.id_cart.metacart }}</td></tr>
             <tr><td>Установлен:</td><td>{{ data1.id_dep }}</td></tr>
+            <tr><td>К принтерам:</td><td>
+                {% for cc in data1.id_cart.carts.all %}
+                    {{ cc }}{% if not forloop.last %}, {% endif %}
+                {% endfor %}
+            </td></tr>
         </table>
         
     {% else %}
@@ -74,7 +79,7 @@
         {% for store in skl %}
             <tr>
                 <td><img class="myopa cart-move bs-modal" data-form-url="{% url 'move-cart2' store.pk %}?dep={{ data1.id_dep_id }}&isk={{ data1.inventar }}" src="/media/pics/data-transfer-magenta.png" alt="Передать в работу" title="Передать в работу" style="width:25px"></td>
-                <td>{{ store.cartriges }}</td>
+                <td title="{{ store.cart_buh }}">{{ store.cartriges }}</td>
                 <td>{{ store.cart_count }}</td>
             </tr>
         {% endfor %}

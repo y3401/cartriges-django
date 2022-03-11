@@ -755,7 +755,7 @@ def PrintView(request):     # формирование печатной форм
 def CartSend(request):      # Процедура передачи на заправку
     empties = ""
     cc=""
-    empties = Records.objects.filter(status=3).order_by('id_cart')
+    empties = Records.objects.filter(status__in = {3,6}).order_by('id_cart')
     contragent = ContrAgent.objects.filter(adm=False)
 
     data = stat()
@@ -863,8 +863,8 @@ def LogStata(request):
         try:
             static=request.COOKIES['static']
         except:
-            static=""
-            
+            static=""    
+
     query3 = '''DROP TABLE IF EXISTS `cartrige_tmp`;
 CREATE TABLE `cartrige_tmp` (
   `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -886,7 +886,7 @@ CREATE TABLE `cartrige_tmp` (
   `m12` int NOT NULL DEFAULT '0',
   `msum` int NOT NULL DEFAULT '0',
   `ord` int NOT NULL DEFAULT '0'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 
 COMMIT;

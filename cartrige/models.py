@@ -9,7 +9,7 @@ from django.core.validators import FileExtensionValidator
 from phonenumber_field.modelfields import PhoneNumberField
 
 class MetaCart(models.Model):
-    metatitle = models.CharField(max_length=20,verbose_name='Наименование группы', unique=True, help_text="")
+    metatitle = models.CharField(max_length=40,verbose_name='Наименование группы', unique=True, help_text="")
     
     def __str__(self):
         return self.metatitle
@@ -19,7 +19,7 @@ class MetaCart(models.Model):
         verbose_name_plural = "Группы картриджей"
 
 class Cartriges(models.Model):
-    name_cart = models.CharField(max_length=25, help_text="", verbose_name="Картридж", unique=True)
+    name_cart = models.CharField(max_length=50, help_text="", verbose_name="Картридж", unique=True)
     photo = models.ImageField(upload_to='images/', validators=[FileExtensionValidator], null=True, blank=True, verbose_name="Фото")
     comment = models.TextField(max_length=300, null=True, blank=True, help_text="", verbose_name="Примечание")
     metacart = models.ForeignKey(MetaCart, on_delete=models.PROTECT, null=True, verbose_name="Группа")
@@ -34,7 +34,7 @@ class Cartriges(models.Model):
 
 
 class Printers(models.Model):
-    name_printer = models.CharField(max_length=25, help_text="", verbose_name="Принтер", unique=True)
+    name_printer = models.CharField(max_length=100, help_text="", verbose_name="Принтер", unique=True)
     photo_prn = models.ImageField(upload_to='images/', validators=[FileExtensionValidator], null=True, blank=True, verbose_name="Фото")
     cart = models.ManyToManyField(Cartriges, related_name="carts", blank=True, verbose_name="Совместимые картриджи")
     
@@ -46,7 +46,7 @@ class Printers(models.Model):
 
 class Sklad(models.Model):
     cartriges = models.ForeignKey('Cartriges', on_delete=models.PROTECT, null=True, verbose_name="Картридж")
-    cart_buh = models.CharField(max_length=30, help_text="", verbose_name="Картридж по бухгалтерии", unique=True)
+    cart_buh = models.CharField(max_length=255, help_text="", verbose_name="Картридж по бухгалтерии", unique=True)
     cart_count = models.IntegerField(verbose_name="Количество", default=0)
     
     def __str__(self):
