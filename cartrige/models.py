@@ -1,7 +1,5 @@
 from django.db import models
 from django.urls import reverse  # Used to generate URLs by reversing the URL patterns
-#import uuid  # Required for unique book instances
-#from datetime import date
 from django.contrib.auth.models import User  # Required to assign User as a borrower
 #from catalog.formatchecker import ContentTypeRestrictedFileField
 from django.core.validators import validate_image_file_extension
@@ -112,6 +110,7 @@ class Nmax(models.Model):
     class Meta:
         verbose_name_plural = 'Максимальный номер'
 
+
 class Records(models.Model):
     inventar = models.IntegerField(null=True, verbose_name="Учетный N", unique=True)
     id_cart = models.ForeignKey('Cartriges', on_delete=models.PROTECT, null=True, verbose_name="Картридж")
@@ -153,16 +152,11 @@ class Logs(models.Model):
     date_event = models.DateTimeField(verbose_name="Дата и время события", null=True, blank=True, editable=False)
     token = models.CharField(max_length=32, verbose_name="Токен",unique=True)
     name_user = models.CharField(max_length=15, verbose_name="Пользователь")
-    #ACT = (
-    #    (1, 'Создание'),
-    #    (2, 'Редактирование'),
-    #    (3, 'Удаление'),
-    #)
-    #action = models.PositiveSmallIntegerField(default=0, help_text='Операция', verbose_name="Операция")
     action = models.ForeignKey('Operation', on_delete=models.SET_NULL, null=True, verbose_name="Операция")
-    #name_table = models.CharField(max_length=25, verbose_name="Таблица")
     obj = models.IntegerField(verbose_name="ID объекта")
     izm = models.CharField(max_length=255, verbose_name="Подробно", blank=True, null=True)
+    dep = models.IntegerField(verbose_name="ID подразделения", null=True)
+
     class Meta:
         ordering = ['-date_event']
         verbose_name_plural = "Логи"
