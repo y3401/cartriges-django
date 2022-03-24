@@ -19,6 +19,7 @@
         <option value="">   ---Выберите запрос---</option>
         <option value="1">Полный отчет по метагруппам</option>
         <option value="3">Полный отчет по моделям картриджей</option>
+        <option value="4">Установлено по подразделениям</option>
         <option value="2">Информация по картриджу</option>
     </select>
 
@@ -52,7 +53,7 @@
                
                     {% regroup dmeta.list by oper as d_act %}
                       {% for da in d_act %}
-                      <tr>
+                      <tr {% if da.grouper == "Всего" %}style="background-color: #b5b7c1;font-weight: bold;color: #f9f9f9;;" {% endif %}>
                         <td>{{ da.grouper }}</td>
                         
                         {% for rr in da.list %}

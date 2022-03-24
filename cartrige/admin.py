@@ -12,8 +12,13 @@ from .models import (
     Logs,
     Operation)
 
-admin.site.register(Nmax)
-#admin.site.register(MetaCart)
+#admin.site.register(Nmax)
+
+@admin.register(Nmax)
+# Define the admin class                        NMAX
+class NmaxAdmin(admin.ModelAdmin):
+    list_display = ('nmax',)
+    fields = ['nmax']
 
 @admin.register(Operation)
 # Define the admin class                        OPERATION

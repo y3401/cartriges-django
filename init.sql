@@ -20,10 +20,6 @@ INSERT INTO `cartrige_operation` (`kod`, `operation_name`) VALUES
 (7, 'Прием с заправки'),
 (8, 'Списание');
 
-DELIMITER $$
-CREATE TRIGGER `plus1` AFTER INSERT ON `cartrige_records` FOR EACH ROW UPDATE cartrige_nmax SET nmax =  NEW.inventar
-$$
-DELIMITER ;
 COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

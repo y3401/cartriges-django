@@ -106,7 +106,7 @@ class Nmax(models.Model):
     zapis = models.IntegerField(default=0)
     nmax = models.IntegerField(verbose_name="Текущий максимальный номер картриджа")
     def __str__(self):
-        return self.nmax
+        return str(self.nmax)
     class Meta:
         verbose_name_plural = 'Максимальный номер'
 

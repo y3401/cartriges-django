@@ -45,11 +45,11 @@ def index(request):
         context={'all_records': all_records, 'ost_sklad': ost_sklad, 'num_rec' : num_rec, 'inwork' : inwork, 'inreserve' : inreserve, 'isempty' : isempty, 'isload' : isload},
     )
 
-def Logging(t,u,a,ob,izm=""):      # запись в лог
+def Logging(t,u,a,ob,izm="",d=0):      # запись в лог
     dt = datetime.datetime.today() #.strftime("%d.%m.%Y %H:%M:%S") #timezone.now() #
-    sfq='INSERT INTO cartrige_logs(date_event,token,name_user,action_id,obj,izm) VALUES (%s, %s, %s, %s, %s, %s);'
+    sfq='INSERT INTO cartrige_logs(date_event,token,name_user,action_id,obj,izm,dep) VALUES (%s, %s, %s, %s, %s, %s, %s);'
     with connection.cursor() as cursor:
-        cursor.execute(sfq,[dt,t,u,a,ob,izm])
+        cursor.execute(sfq,[dt,t,u,a,ob,izm,d])
 
 def createToken():
     lower="abcdefghijklmnopqrstuwvxyz"
@@ -439,7 +439,7 @@ def MoveCart(request,pk):     # передача со склада #############
 
             try:
                 k = Records.objects.create(id_cart = form.cleaned_data['cartriges'], id_dep = form.cleaned_data['id_dep'], status = st, charge_num = 0, inventar= form.cleaned_data['nmax'])
-                Logging(t,u,2,k.id,"Ввод в эксплуатацию со склада Уч.N {0} и передано '{1}'".format(nm,Depart.objects.get(pk=dep)))
+                Logging(t,u,2,k.id,"Ввод в эксплуатацию со склада Уч.N {0} и передано '{1}'".format(nm,Depart.objects.get(pk=dep)),dep)
             except:
                 pass
             skl.cart_count= form.cleaned_data['cart_count']
@@ -554,7 +554,7 @@ def myRecordCreate(request):
 
         try:
             k=Records.objects.create(id_cart = Cartriges.objects.get(pk=int(cart)), id_dep = Depart.objects.get(pk=int(dep)), status = st, charge_num = cn, inventar= inv, comment= cmt)
-            Logging(t,u,1,k.id,"Регистрация N " + inv)
+            Logging(t,u,1,k.id,"Регистрация N " + inv,0)
         except:
             pass
         return HttpResponseRedirect(reverse('records-list'))
@@ -609,12 +609,12 @@ class RecordUpdate(LoginRequiredMixin,PermissionRequiredMixin, BSModalUpdateView
         if self.mes != "":
             self.t=self.request._post['csrfmiddlewaretoken'][0:31]
         try:
-            Logging(self.t,u,3,pk,"Редактирование N {0}: {1}".format(self.oldrec.inventar,self.mes))
+            Logging(self.t,u,3,pk,"Редактирование N {0}: {1}".format(self.oldrec.inventar,self.mes),0)
         except:
             pass
         if self.status1 != self.status2 and self.status2==2:
             try:
-                Logging(self.t[0:30]+"a",u,5,pk,"Выдача заправленного - N {0}".format(self.oldrec.inventar,))
+                Logging(self.t[0:30]+"a",u,5,pk,"Выдача заправленного - N {0}".format(self.oldrec.inventar,),self.iddep2)
             except:
                 pass
         #instance.save()
@@ -632,7 +632,7 @@ class RecordDelete(LoginRequiredMixin,PermissionRequiredMixin, BSModalDeleteView
         pk=self.kwargs['pk']
         rec = Records.objects.get(pk=pk)
         t=self.request._post['csrfmiddlewaretoken'][0:31]
-        Logging(t,u,8,pk,"Удалено N " + str(rec.inventar) + ", модель: " + str(rec.id_cart))
+        Logging(t,u,8,pk,"Удалено N " + str(rec.inventar) + ", модель: " + str(rec.id_cart),0)
         return (reverse_lazy('records-list')) + '?page='+ pn
 
 def RecordChange(request):  # замена сданного на заправленный
@@ -676,9 +676,9 @@ def RecordChange(request):  # замена сданного на заправл�
         b4.save(update_fields=['status','id_dep'])
         out1.save(update_fields=['status','id_dep'])
         t=createToken()
-        Logging(t,u,4,b4.id,"Прием пустого - N {0} от '{1}'".format(b4.inventar, out1.id_dep))
+        Logging(t,u,4,b4.id,"Прием пустого - N {0} от '{1}'".format(b4.inventar, out1.id_dep),out1.id_dep_id)
         t=createToken()
-        Logging(t,u,5,out1.id,"Выдача заправленного - N {0} > '{1}'".format(out1.inventar, out1.id_dep))
+        Logging(t,u,5,out1.id,"Выдача заправленного - N {0} > '{1}'".format(out1.inventar, out1.id_dep),out1.id_dep_id)
         return HttpResponseRedirect(reverse('records-list'))
     else:
         return render(
@@ -713,14 +713,14 @@ def MoveCart2Use(request,pk):     # передача со склада в обм
             k=Records.objects.create(id_cart = Cartriges.objects.get(pk=int(cart)), id_dep = Depart.objects.get(pk=int(dep)), status = 2, charge_num = 0, inventar= int(nm))
             skl.cart_count -= 1 
             skl.save()
-            Logging(t,u,2,k.id,"Ввод в эксплуатацию со склада N {0} и передано '{1}'".format(nm,Depart.objects.get(pk=dep)))
+            Logging(t,u,2,k.id,"Ввод в эксплуатацию со склада N {0} и передано '{1}'".format(nm,Depart.objects.get(pk=dep)),dep)
 
             b4=Records.objects.get(inventar=int(isk))
             b4.status = 3
             b4.id_dep = Depart.objects.get(adm=True)
             b4.save(update_fields=['status','id_dep'])
             t=createToken()
-            Logging(t,u,4,b4.id,"Прием пустого - N {0} от '{1}'".format(isk, Depart.objects.get(pk=dep)))
+            Logging(t,u,4,b4.id,"Прием пустого - N {0} от '{1}'".format(isk, Depart.objects.get(pk=dep)),dep)
         except:
             pass
         
@@ -783,7 +783,7 @@ def CartSend(request):      # Процедура передачи на запр�
                 cartrige.c_agent = ContrAgent.objects.get(pk=int(ca))
                 cartrige.date_out = datetime.datetime.today()
                 cartrige.save()
-                Logging(t+str(i),u,6,int(i),"Передано на заправку - N {0} - '{1}'".format(cartrige.inventar,partner.name_agent)) # + ' (' + ra +")")
+                Logging(t+str(i),u,6,int(i),"Передано на заправку - N {0} - '{1}'".format(cartrige.inventar,partner.name_agent),0) # + ' (' + ra +")")
         return HttpResponseRedirect(reverse('records-send'))
         #else:
         #    return HttpResponseRedirect(reverse('records-send'))
@@ -834,7 +834,7 @@ def CartReceive(request):      # Процедура приема с заправ
                 cartrige.date_out = None
                 cartrige.c_agent = None
                 cartrige.save()
-                Logging(t+str(i),u,7,int(i),"Получено с заправки- N {0}".format(cartrige.inventar,))
+                Logging(t+str(i),u,7,int(i),"Получено с заправки- N {0}".format(cartrige.inventar,),0)
                
         return HttpResponseRedirect(reverse('records-receive'))
 
@@ -865,7 +865,7 @@ def LogStata(request):
         except:
             static=""    
 
-    query3 = '''DROP TABLE IF EXISTS `cartrige_tmp`;
+    query_creat = '''DROP TABLE IF EXISTS `cartrige_tmp`;
 CREATE TABLE `cartrige_tmp` (
   `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `god` int NOT NULL DEFAULT '0',
@@ -892,8 +892,8 @@ CREATE TABLE `cartrige_tmp` (
 COMMIT;
 
 '''
-
-    query4 = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m{0}, ord) 
+# запрос по метагруппам
+    query_meta = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m{0}, ord) 
 SELECT YEAR(date_event), metatitle, operation_name, action_id, count(obj),1 
 FROM (((`cartrige_logs`INNER JOIN `cartrige_operation` ON action_id=kod)
 INNER JOIN `cartrige_records` ON obj=`cartrige_records`.id)
@@ -902,7 +902,8 @@ INNER JOIN `cartrige_metacart` ON metacart_id=`cartrige_metacart`.id
 WHERE MONTH(date_event)={1} and action_id in (1,2,5,6,7)
 GROUP BY YEAR(date_event), metatitle, operation_name, action_id;'''
 
-    query6 = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m{0}, ord) 
+#запрос по картриджам
+    query_carts = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m{0}, ord) 
 SELECT YEAR(date_event), name_cart, operation_name, action_id, count(obj),1 
 FROM ((`cartrige_logs`INNER JOIN `cartrige_operation` ON action_id=kod)
 INNER JOIN `cartrige_records` ON obj=`cartrige_records`.id)
@@ -910,20 +911,50 @@ INNER JOIN `cartrige_cartriges` ON id_cart_id=`cartrige_cartriges`.id
 WHERE MONTH(date_event)={1} and action_id in (1,2,5,6,7)
 GROUP BY YEAR(date_event), name_cart, operation_name, action_id;'''
 
-    query5 = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, ord) 
+# запрос по отделам
+    query_dep = '''INSERT INTO `cartrige_tmp`(god, meta, oper,  m{0}, ord) 
+SELECT YEAR(date_event), name_depart, name_cart, count(obj),1 
+FROM ((`cartrige_logs`INNER JOIN `cartrige_depart` ON dep=`cartrige_depart`.id)
+INNER JOIN `cartrige_records` ON obj=`cartrige_records`.id)
+INNER JOIN `cartrige_cartriges` ON id_cart_id=`cartrige_cartriges`.id
+WHERE MONTH(date_event)={1} and action_id in (2,5)
+GROUP BY YEAR(date_event), name_depart, name_cart;'''
+
+# запрос группирующий
+    query_group = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, ord) 
 SELECT god, meta, oper, actid, sum(m1), sum(m2), sum(m3), sum(m4), sum(m5), sum(m6), sum(m7), sum(m8), sum(m9), sum(m10), sum(m11), sum(m12), 2
 FROM `cartrige_tmp`
 WHERE ord=1
 GROUP BY god,meta,oper,actid;
+'''
 
-INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12,msum, ord) 
+# запрос сумирования по строкам
+    query_linesum = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12,msum, ord) 
 SELECT god, meta, oper, actid, m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12,sum(m1+m2+m3+m4+m5+m6+m7+m8+m9+m10+m11+m12), 3
 FROM `cartrige_tmp`
 WHERE ord=2
 GROUP BY god,meta,oper,actid, m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12
 ORDER BY god,meta,actid;
+'''
 
-INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, msum, ord) 
+# запрос вставки строки ВСЕГО
+    query_rowsall = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, msum, ord) 
+SELECT god, meta, 'Всего', actid, sum(m1), sum(m2), sum(m3), sum(m4), sum(m5), sum(m6), sum(m7), sum(m8), sum(m9), sum(m10), sum(m11), sum(m12), sum(msum),4
+FROM `cartrige_tmp`
+WHERE ord = 3
+GROUP BY god,meta,actid
+ORDER BY god,actid;
+
+INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12,msum, ord) 
+SELECT god, meta, oper, actid, m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12,sum(m1+m2+m3+m4+m5+m6+m7+m8+m9+m10+m11+m12), 5
+FROM `cartrige_tmp`
+WHERE ord in (3,4)
+GROUP BY god,meta,oper,actid, m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12
+ORDER BY god,meta,actid;
+'''
+
+# запрос сумирования всего в отдельны1 раздел
+    query_sum_group = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, msum, ord) 
 SELECT god, 'Всего', oper, actid, sum(m1), sum(m2), sum(m3), sum(m4), sum(m5), sum(m6), sum(m7), sum(m8), sum(m9), sum(m10), sum(m11), sum(m12), sum(msum),4
 FROM `cartrige_tmp`
 WHERE ord=3
@@ -943,12 +974,15 @@ ORDER BY god,actid;
 
     #data_all = Logs.objects.raw(query1)
     #data = Logs.objects.raw(query1)
-    if static=='1':
+    if static=='1':                             # по метагруппам
         with connection.cursor() as cursor:
-            cursor.execute(query3)
+            cursor.execute(query_creat)
             for i in range(12):
-                cursor.execute(query4.format(str(i+1),str(i+1)))
-            cursor.execute(query5)
+                cursor.execute(query_meta.format(str(i+1),str(i+1)))
+            cursor.execute(query_group)
+            cursor.execute(query_linesum)
+            cursor.execute(query_sum_group)
+            
         data = Tmp.objects.filter(ord__in=(3,4))
         data_sum = Tmp.objects.filter(ord=4)
     elif static=='2':
@@ -960,14 +994,27 @@ ORDER BY god,actid;
             if ipk != "":
                 pk = ipk.id
                 inf = Logs.objects.filter(obj = pk).order_by('date_event')
-    elif static=='3':
+    elif static=='3':                           # по картриджам
         with connection.cursor() as cursor:
-            cursor.execute(query3)
+            cursor.execute(query_creat)
             for i in range(12):
-                cursor.execute(query6.format(str(i+1),str(i+1)))
-            cursor.execute(query5)
+                cursor.execute(query_carts.format(str(i+1),str(i+1)))
+            cursor.execute(query_group)
+            cursor.execute(query_linesum)
+            cursor.execute(query_sum_group)
+
         data = Tmp.objects.filter(ord__in=(3,4))
         data_sum = Tmp.objects.filter(ord=4)
+    elif static=='4':                           # по подразделениям
+        with connection.cursor() as cursor:
+            cursor.execute(query_creat)
+            for i in range(12):
+                cursor.execute(query_dep.format(str(i+1),str(i+1)))
+            cursor.execute(query_group)
+            cursor.execute(query_linesum)
+            cursor.execute(query_rowsall)
+        data = Tmp.objects.filter(ord=5)
+        #data_sum = Tmp.objects.filter(ord=4)
 
 
     return render(
