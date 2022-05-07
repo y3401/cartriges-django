@@ -4,13 +4,13 @@
  # Создание db mySQL
  Создать пустую базу с названием 'carts'
 Выполнить 
-    manage.py makemigrations 
+    "manage.py makemigrations" 
 и затем 
-    manage.py migrate
+    "manage.py migrate"
 
-            *Выполнить запросы к db посредством файла init.sql
+Выполнить запросы к db посредством файла init.sql
 Создать админа приложения:
-    manage.py createsuperuser
+    "manage.py createsuperuser"
 
  # Первоначальная настройка
 1. Войти под логином админа.
