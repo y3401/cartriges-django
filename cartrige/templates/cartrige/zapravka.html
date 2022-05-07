@@ -31,6 +31,7 @@
                   <th class="text-center" scope="col"><input type="checkbox" id="sel_all" name="sel_all" class="" value=""></th>
                   <th class="text-center" scope="col">Модель</th>
                   <th class="text-center" scope="col">Инв.N</th>
+                  <th class="text-center" scope="col">Статус</th>
                
                 </tr>
             </thead>
@@ -40,6 +41,7 @@
                     <td><input type="checkbox" id="sel_cand" name="sel_cand" class="" value="{{ cand.id }}"></td>
                     <td>{{ cand.id_cart }}</td>
                     <td>{{ cand.inventar }}</td>
+                    <td {% if cand.status == 6 %}id="com" data-title="{{ cand.comment }}"{% endif %}>{{ cand.get_status_display }}</td>
                     
                 </tr>
             {% endfor %}

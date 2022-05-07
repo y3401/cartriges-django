@@ -29,8 +29,8 @@ class OperationAdmin(admin.ModelAdmin):
 @admin.register(Logs)
 # Define the admin class                        LOGS
 class LogsAdmin(admin.ModelAdmin):
-    list_display = ('date_event', 'name_user','action','obj','izm')
-    fields = ['name_user','action','obj','izm']
+    list_display = ('date_event', 'name_user','action','obj','izm','dep')
+    fields = ['name_user','action','obj','izm','dep']
 
 @admin.register(Depart)
 # Define the admin class                        DEPART
@@ -55,22 +55,11 @@ class PrinterInline(admin.TabularInline):
     model = Printers.cart.through
     extra = 0
 
-#class CartrigesInline(admin.TabularInline):
-#    model = Cartriges
-#    extra = 0
-    #fields = ['name_cart']
-#    can_delete = False
-    #list_display = ['name_cart']
-    #prepopulated_fields = {'name_cart':('name_cart',)}
-    
 @admin.register(MetaCart)
 # Define the admin class                        METACART
 class MetaCartAdmin(admin.ModelAdmin):
     list_display = ('metatitle',)
     fields = ['metatitle',]
-#    inlines = [CartrigesInline]
-
-
 
 @admin.register(Cartriges)
 # Define the admin class                        CARTRIGES
@@ -96,7 +85,7 @@ class AllPrintersAdmin(admin.ModelAdmin):
 # Define the admin class                        RECORDS
 class SkladAdmin(admin.ModelAdmin):
     list_display = ('inventar', 'id_cart', 'id_dep', 'status', 'date_in', 'date_out','charge_num','c_agent')
-    fields = ['inventar', 'id_cart', 'id_dep', 'status', 'date_in', 'date_out','charge_num', 'comment']
+    fields = ['inventar', 'id_cart', 'id_dep', 'status', 'date_out','charge_num', 'comment']
 
 
 

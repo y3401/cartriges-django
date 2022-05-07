@@ -749,6 +749,12 @@ li:hover {
 	border-color:#c3e6cb 
 }
 
+.alert-error { 
+	color:#571515; 
+	background-color:#edb9ab; 
+	border-color:#db90b9 
+}
+
 .alert-success hr { 
 	border-top-color:#b1dfbb 
 }
@@ -1760,7 +1766,7 @@ button.close {
 	-ms-flex-pack:justify; 
 	justify-content:space-between; 
 	padding: .5rem; 
-	border-bottom:1px solid #e9ecef; 
+	/*border-bottom:1px solid #e9ecef;*/ 
 	border-top-left-radius:.3rem; 
 	border-top-right-radius:.3rem 
 }
@@ -2449,6 +2455,7 @@ input[type="text" i] {
     overflow: auto;
     margin: 0 auto;
     right: 45px;
+	scrollbar-width: none;
 }
 
 h1,h2,h3 {
@@ -2460,7 +2467,7 @@ h1,h2,h3 {
     padding: 10px;
 }
 
-h4 {
+h4,h5 {
     margin: 0 20px 0 20px;
     color: #3276b3;
 }
@@ -2493,14 +2500,29 @@ label {
 }
 
 #t-img {
-    width: 90px;
-    height: 90px;
+    width: 80px;
+    height: 80px;
 }
 
 #t-header {
     height: 25px;
     width: auto;
 }
+
+#com:hover::after {
+    content: attr(data-title); /* Выводим текст */
+    position:absolute; /* Абсолютное позиционирование */
+	/*left: 50%;/* Положение подсказки */
+    z-index: 1000; /* Отображаем подсказку поверх других элементов */
+    background: rgb(255,255,230); /* Полупрозрачный цвет фона */
+    font-family: Arial, sans-serif; /* Гарнитура шрифта */
+    font-size: 14px; /* Размер текста подсказки */
+    padding: 5px 10px; /* Поля */
+    border: 1px solid #333; /* Параметры рамки */
+	max-width: 300px;
+	border-radius: 5px;
+	display: block;
+   }
 
 #t-edit {
     width: 25px;
@@ -2511,12 +2533,12 @@ label {
 }
 
 #t-comment {
-    height:45px;
+    /*height:45px;*/
     padding-left: 20px;
 }
 
 #t-list {
-    height: 20px;
+    /*height: 20px;*/
     padding-left: 20px;
     font-size: small;
 }
@@ -2568,13 +2590,13 @@ label {
     width:35px;
 }
 
-#add-span {
+#add-span, #span-add {
     opacity: .5;
+	z-index: 100;
 }
 
-#add-span:hover {
+#add-span:hover, #span-add:hover {
     opacity: 1;
-
 }
 
 button .close {
@@ -2750,3 +2772,39 @@ text-align: center;
 		display: none;
 	}}
 
+.detail {
+	cursor: pointer;
+	color: #689cb5;
+	margin: 5px;
+	display: block;
+}
+
+.detail:hover {
+	color:#114882;
+	text-shadow: 0px 0px 2px #7ba7ec;
+}
+
+.dec {
+	list-style: decimal;
+}
+
+#sbros {
+	width:32px;
+	position: absolute;
+	top: 74px;
+	right: 7px;
+	opacity: 0.3;
+}
+
+#sbros:hover {
+	opacity: 1;
+	cursor:pointer;
+}
+
+.author {
+	position: absolute;
+	bottom: 15px;
+	left: 25px;
+	color: #4665c1;
+	text-shadow: 0 0 2px #313a44;
+}

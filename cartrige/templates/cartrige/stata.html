@@ -20,6 +20,8 @@
         <option value="1">Полный отчет по метагруппам</option>
         <option value="3">Полный отчет по моделям картриджей</option>
         <option value="4">Установлено по подразделениям</option>
+        <option value="5">Список списанных</option>
+        <option value="6">Возвраты неподошедших</option>
         <option value="2">Информация по картриджу</option>
     </select>
 
@@ -100,6 +102,49 @@
     <h5>Картридж с таким номером не зарегистрирован</h5>
   {% endif%}
 {% endif %}
+
+{% if spisoff %}
+<br><h4>Список списанных картриджей</h4><br>
+<table class="table">
+  <tr>
+    <th class="text-center" width="20%">Дата списания</th>
+    <th class="text-center">Учетный номер</th>
+    <th class="text-center" width="60%">Причина списания</th>
+  </tr>
+  {% for ii in spisoff %}
+    <tr>
+      <td class="text-center">{{ ii.date_out }}</td>
+      <td class="text-center">{{ ii.inventar }}</td>
+      <td class="text-center">{{ ii.comment }}</td></tr>
+  {% endfor %}
+</table>
+{% else %}
+    {% if request.COOKIES.static == "5" %}
+      <h5>Нет списанных картриджей</h5>
+    {% endif %}
+{% endif %}
+
+{% if infback %}
+<br><h4>Возвраты неподошедших картриджей</h4><br>
+<table class="table">
+  <tr>
+    <th class="text-center" width="20%">Дата возврата</th>
+    <th class="text-center">Учетный номер</th>
+    <th class="text-center" width="60%">Причина</th>
+  </tr>
+  {% for ii in infback %}
+    <tr>
+      <td class="text-center">{{ ii.date_event }}</td>
+      <td class="text-center">{{ ii.obj }}</td>
+      <td class="text-center">{{ ii.izm }}</td></tr>
+  {% endfor %}
+</table>
+{% else %}
+    {% if request.COOKIES.static == "6" %}
+      <h5>Нет возвратов картриджей</h5>
+    {% endif %}
+{% endif %}
+
 </div>
 </div>
 

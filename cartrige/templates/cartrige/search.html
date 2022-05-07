@@ -1,0 +1,58 @@
+{% extends "base_generic.html" %}
+
+{% block title %}<title>Поиск</title>{% endblock %}
+
+{% block content %}
+{% include "_modal.html" %}
+{% load static %}
+
+<div class="main" style="width:650px; left:30%;padding: 0 30px;min-height: 400px;">
+    <a href="/"><img src="{% static 'media/pics/cross-small.png' %}" style="width:35px; position: absolute;right: 21px; top: 16px;" title="Закрыть" ></a>
+    <h3>Поиск</h3>
+    
+<div id="part">
+    <form id="searchtext" action="" method="get" class="searchtext" style="position: absolute;right: 0;left: 0;bottom: -15px;top: 0;">
+        <input type="text" class="form-control" name="stext" autofocus="" autocomplete="off" maxlength="75" id="stext" placeholder="Что ищем?" style="float: left;position: relative;top: 0;left: 10px;width:72%"> 
+        <input class="w-125px btn btn-primary" type="submit" value="Поиск" style="position: relative;top: 0px;right: -10px;">
+    </form>
+
+    <div style="position: absolute;top: 65px;bottom: 50px;overflow-y: auto;width: 100%;">
+    {% if cartdata %}
+    <h4>Картриджи:</h4>
+    <ul style="padding-left: 5rem;">
+        {% for cart in cartdata %}
+        <li class="dec"><span class="detail bs-modal" data-form-url="{% url 'cartrige-detail' cart.pk %}">{{ cart.name_cart }}</span></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if prndata %}
+    <h4>Принтеры:</h4>
+    <ul style="padding-left: 5rem;">
+        {% for prn in prndata %}
+            <li class="dec"><span class="detail bs-modal" data-form-url="{% url 'printers-detail' prn.pk %}">{{ prn.name_printer }}</span></li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    </div>
+
+</div>
+</div>
+
+<script type="text/javascript">
+    $(function () {
+    const getValueFromUrl = (key) => {
+        const search = new URLSearchParams(window.location.search);
+        const value = search.get(key);
+        return value;
+      };
+      const st = getValueFromUrl('stext');
+      $("#stext").val(st);
+
+    $(".detail").each(function () {
+        $(this).modalForm({formURL: $(this).data("form-url")});
+    });
+});
+</script>
+        
+{% endblock %}>

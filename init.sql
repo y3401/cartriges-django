@@ -18,7 +18,8 @@ INSERT INTO `cartrige_operation` (`kod`, `operation_name`) VALUES
 (5, 'Выдача в работу'),
 (6, 'Передача на заправку'),
 (7, 'Прием с заправки'),
-(8, 'Списание');
+(8, 'Списание'),
+(9, 'Возврат');
 
 COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

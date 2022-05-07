@@ -13,7 +13,8 @@
     <h4>Прием на замену</h4><br>
     <form id="invnum" action="" method="get" class="findform">
         <input type="number" name="isknum" min="0" class="w-125px inl_my form-control-my" placeholder="Учетный N" id="id_isknum">
-        <input class="w-125px btn btn-primary" type="submit" value="Найти" style="vertical-align:unset;">
+        <input class="w-125px btn btn-primary" type="submit" value="Найти" style="vertical-align:unset;"><br>
+        <input id="cb0" name="cb0" type="checkbox"> Отметьте, если картридж не подошел
     </form>
     {% if data1 %}
         
@@ -37,12 +38,17 @@
 
 <div id="rightpart">
     <h4>Кандидаты на замену</h4>
-
+    <div style="float: inline-end;margin-top: 22px;">
+    <input type="tel" name="poisk" min="0" class="w-100 inl_my form-control-my" placeholder="Найти по учетн.№" id="poisk" >
+    <img src="/media/pics/cross-small.png" id="sbros" alt="очистить" title="Очистить" onclick="cleaning();">
+    </div>
 <p>Отметьте один из предложенных доступных вариантов:</p>
-<div style="position: absolute;top: 103px;bottom: 50px;overflow-y: auto;width: 96%;">
+
+<div style="position: absolute;top: 128px;bottom: 50px;overflow-y: auto;width: 96%;">
 <form id="candidate" action="" method="get" class="outform">
     {% if reserv %}
     <input type="hidden" name="in_cart" id="in_cart" value="">
+    <input type="hidden" name="zam" id="zam" value="">
     <table class="table">
         <thead>
             <tr>
@@ -56,7 +62,7 @@
         {% for cand in reserv %}
             <tr>
                 <td><input type="radio" id="sel_cand" name="sel_cand" class="" value="{{ cand.id }}"></td>
-                <td>{{ cand.inventar }}</td>
+                <td id="psk">{{ cand.inventar }}</td>
                 <td>{{ cand.id_cart }}</td>
                 <td>{% if cand.status == 1 %}Новый{% else %}Заправлен{% endif %}</td>
             </tr>
@@ -78,8 +84,8 @@
         <tbody>
         {% for store in skl %}
             <tr>
-                <td><img class="myopa cart-move bs-modal" data-form-url="{% url 'move-cart2' store.pk %}?dep={{ data1.id_dep_id }}&isk={{ data1.inventar }}" src="/media/pics/data-transfer-magenta.png" alt="Передать в работу" title="Передать в работу" style="width:25px"></td>
-                <td title="{{ store.cart_buh }}">{{ store.cartriges }}</td>
+                <td><img class="myopa cart-move bs-modal" data-form-url="{% url 'move-cart2' store.pk %}?dep={{ data1.id_dep_id }}&isk={{ data1.inventar }}&zam={% if request.GET.cb0 == "on" %}on{% else %}off{% endif%}" src="/media/pics/data-transfer-magenta.png" alt="Передать в работу" title="Передать в работу" style="width:25px"></td>
+                <td id="com" data-title="{{ store.cart_buh }}">{{ store.cartriges }}</td>
                 <td>{{ store.cart_count }}</td>
             </tr>
         {% endfor %}
@@ -107,7 +113,34 @@
     const isknum = getValueFromUrl('isknum');
     $("#id_isknum").val(isknum);
     $("#in_cart").val(isknum);
-  
+    cb = getValueFromUrl('cb0');
+    
+    c_b=document.querySelector("#cb0");
+
+    $(document).ready(function(){
+        
+        cb = getValueFromUrl('cb0');
+        if (cb == 'on') {
+            c_b.checked=true;
+            $("#zam").val('on');
+       }
+        else {
+            c_b.checked=false;
+            $("#zam").val('off');
+        };
+        
+    });
+    
+    c_b.addEventListener('change',function(){
+        if (c_b.checked==true) {
+        $("#zam").val('on');
+        }
+    else {
+        $("#zam").val('off');
+    };
+    document.querySelector("#invnum").submit();
+    });
+    
 $('input[name="sel_cand"]').on("change", function() { 
     if ($('input[name="sel_cand"]').is(':checked')){
         $("#giveout").css("display", "inline");
@@ -117,13 +150,53 @@ $('input[name="sel_cand"]').on("change", function() {
     $(function () {
 
         $("#add-rec").modalForm({
-            formURL: "{% url 'record-create' %}",
+            formURL: "{% url 'record-create2' %}",
             modalID: "#modal"
         });
         $(".cart-move").each(function () {
             $(this).modalForm({formURL: $(this).data("form-url")});
          });
     });
+//###################################
+    var ps=document.querySelectorAll("#psk")
+    var poisk = document.getElementById("poisk")
+
+    function sbr_cb(){
+        $('input[name="sel_cand"]').each(function(){
+            $('input[name="sel_cand"]').prop('checked',false);
+        });
+    };
+
+    function lighting(){
+        if (poisk.value!=""){
+        for (let i=0; i < ps.length; i++) {
+            ps[i].parentElement.style="background-color: #fff";
+            if (ps[i].textContent==poisk.value){
+                ps[i].parentElement.style="background-color: #ddd";
+                ps[i].scrollIntoView(0);
+                }
+            else {
+                ps[i].scrollTop;
+        };
+    };
+}
+else {
+    sbr_cb();
+    ps[0].scrollIntoView(0);
+}
+;
+};
+    poisk.onkeyup = lighting;
+
+    function cleaning(){
+        poisk.value="";
+        for (let i=0; i < ps.length; i++) {
+            ps[i].parentElement.style="background-color: #fff";
+        };
+        ps[0].scrollIntoView(0);
+        sbr_cb();    
+    };
+//####################################
 </script>
         
 {% endblock %}>

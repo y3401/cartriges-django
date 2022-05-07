@@ -2,7 +2,6 @@ from bootstrap_modal_forms.generic import BSModalUpdateView
 from django import forms
 from django.forms import ModelForm
 from django.contrib.auth.forms import AuthenticationForm
-#from django.forms.widgets import PasswordInput, TextInput
 from django.contrib.auth.models import User
 from django.db.models.query import QuerySet
 from django.forms.widgets import HiddenInput
@@ -58,6 +57,7 @@ class MoveModelForm(BSModalModelForm):
     id_dep = forms.ModelChoiceField(Depart.objects.order_by('name_depart'), label="Передать в ")
     nmax = forms.IntegerField(widget = forms.HiddenInput(), label='') 
     isk = forms.IntegerField(widget = forms.HiddenInput(), label='',required=False) 
+    zam = forms.IntegerField(widget = forms.HiddenInput(), label='',required=False)
 
     class Meta:
         model = Sklad
@@ -67,25 +67,17 @@ class MoveModelForm(BSModalModelForm):
 
 class Cb0FilterForm(forms.Form):
     cb0= forms.BooleanField(widget= forms.CheckboxInput(), label="")
-    
-    #class Meta:
-    #    fields = ["cb0",]
 
 class RecordsStatusForm(forms.Form):
     isknum = forms.IntegerField(min_value=0, label = "",required=False )
     stat= forms.ChoiceField(choices=Records.LOAN_STATUS, label="",required=False)
     dept= forms.ModelChoiceField(Depart.objects.order_by('name_depart'), label="",required=False)
-
     class Meta:
-        #fields = ['isknum','stat']
         widgets = {"isknum" : forms.CharField()}
 
     def __init__(self, *args, **kwargs):
         super(RecordsStatusForm, self).__init__(*args, **kwargs)
-        #self.fields['used'].choices = [('2', 'Установленные')] + self.fields['used'].choices
-        #self.fields['used'].choices = [('1', 'В IT')] + self.fields['used'].choices
-        #self.fields['used'].choices = [('0', 'Все')] + self.fields['used'].choices
-        self.fields['stat'].choices = [('', '---------')] + self.fields['stat'].choices
+        self.fields['stat'].choices = [('', '---------')] + self.fields['stat'].choices[:-1]
         self.fields['dept'].widget.attrs.update({'class': 'w-125px inl_my form-control-my'})
         self.fields['stat'].widget.attrs.update({'class': 'w-125px inl_my form-control-my'})
         self.fields['isknum'].widget.attrs.update({'class': 'w-125px inl_my form-control-my', "placeholder":"Учетный N"})
@@ -101,7 +93,22 @@ class RecordsModelForm(BSModalModelForm):
     class Meta:
         model = Records
         fields = ['inventar','id_cart', 'id_dep', 'status', 'charge_num', 'comment'] #'date_out',
-        exclude = ['inventar',]
+        exclude = ['inventar']
         widgets = {"date_out" : forms.TextInput(attrs = {"type" : "date"}), 
         "charge_num" : forms.NumberInput(attrs = {"type" : "number", "min" : 0})}
 
+    def __init__(self, *args, **kwargs):
+        super(RecordsModelForm, self).__init__(*args, **kwargs)
+        self.fields['status'].choices = self.fields['status'].choices[:-1]
+
+
+class RecordsOff(BSModalModelForm):
+  
+    class Meta:
+        model = Records
+        fields = ['inventar','id_cart', 'id_dep', 'status', 'charge_num', 'date_out', 'comment'] #'date_out',
+        exclude = ['inventar','id_cart', 'id_dep', 'status', 'charge_num','date_out']
+    
+    def __init__(self, *args, **kwargs):
+        super(RecordsOff, self).__init__(*args, **kwargs)
+        self.fields['comment'].widget.attrs.update({"required":""})

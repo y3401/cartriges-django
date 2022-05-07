@@ -28,7 +28,7 @@ FROM cartrige_records AS cr, cartrige_cartriges AS cc, cartrige_metacart AS cm W
 GROUP BY metatitle,status,name_cart 
 ORDER BY metatitle,status,name_cart
 '''
-sfq_1 = '''SELECT 1 as id,name_cart,cart_count FROM cartrige_sklad AS cs,cartrige_cartriges AS cc WHERE cs.cartriges_id= cc.id AND cs.cart_count > 0 ORDER BY name_cart;'''
+sfq_1 = '''SELECT 1 as id, cart_buh, name_cart,cart_count FROM cartrige_sklad AS cs,cartrige_cartriges AS cc WHERE cs.cartriges_id= cc.id AND cs.cart_count > 0 ORDER BY name_cart;'''
 
 def index(request):
     all_records = Records.objects.raw(sfq) #aggregate(Count('id_cart__name_cart')).values('status')  # Метод 'all()' применён по умолчанию.
@@ -47,7 +47,7 @@ def index(request):
 
 def Logging(t,u,a,ob,izm="",d=0):      # запись в лог
     dt = datetime.datetime.today() #.strftime("%d.%m.%Y %H:%M:%S") #timezone.now() #
-    sfq='INSERT INTO cartrige_logs(date_event,token,name_user,action_id,obj,izm,dep) VALUES (%s, %s, %s, %s, %s, %s, %s);'
+    sfq='INSERT INTO cartrige_logs(date_event,token,name_user,action_id,obj_id,izm,dep) VALUES (%s, %s, %s, %s, %s, %s, %s);'
     with connection.cursor() as cursor:
         cursor.execute(sfq,[dt,t,u,a,ob,izm,d])
 
@@ -102,7 +102,9 @@ from .forms import (
     RecordsModelForm,
     MoveModelForm,
     RecordsStatusForm,
-    MetaCartModelForm) 
+    MetaCartModelForm,
+    RecordsOff
+    ) 
 #    CustomAuthenticationForm)
 
 def NMax():
@@ -120,7 +122,7 @@ def NMax():
 
 class CartrigeListView(LoginRequiredMixin,generic.ListView):
     model = Cartriges
-    paginate_by = 5
+    paginate_by = 30
     #paginate_orphans = 2
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
@@ -181,14 +183,14 @@ class CartrigeDelete(LoginRequiredMixin, BSModalDeleteView):
                 pn = self.request.GET['page']
             except:
                 pn = 1
-            messages.success(request,"Эта модель картриджа задействована! Удалить невозможно!")
+            messages.error(request,"Эта модель картриджа задействована! Удалить невозможно!")
             return HttpResponseRedirect((reverse('cartriges-list')) + '?page='+ str(pn))
 
 ''' Вьюшки для справочника принтеров'''
 #@permission_required('printers.can_mark_returned')
 class PrinterListView(LoginRequiredMixin,generic.ListView):
     model = Printers
-    paginate_by = 5
+    paginate_by = 30
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
         data1 = stat()
@@ -319,7 +321,7 @@ class AllPrintersDelete(LoginRequiredMixin, BSModalDeleteView):
 #@permission_required('sklad.can_mark_returned')
 class SkladListView(generic.ListView):
     model = Sklad
-    paginate_by = 20
+    paginate_by = 50
     
     def get_queryset(self):
         qs = super().get_queryset()
@@ -366,7 +368,7 @@ class SkladDelete(LoginRequiredMixin, BSModalDeleteView):
 class MetaCartListView(generic.ListView):
     model = MetaCart
     template_name = 'cartrige/meta_list.html'
-    paginate_by = 8
+    paginate_by = 50
     paginate_orphans = 2
     
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
@@ -412,7 +414,7 @@ class MetaCartDelete(LoginRequiredMixin, BSModalDeleteView):
             return rend
         except models.ProtectedError as e:
             success_message = ""
-            messages.success(request,"К этой метагруппе привязаны модели картриджей! Перед удалением их необходимо отвязать")
+            messages.error(request,"К этой метагруппе привязаны модели картриджей! Перед удалением их необходимо отвязать")
             return HttpResponseRedirect(reverse('meta-list'))
 
 
@@ -453,11 +455,12 @@ def MoveCart(request,pk):     # передача со склада #############
 
 from django.views.generic.edit import FormMixin
 
-''' Вьюшки для списка учтенных картриджей '''
+####################################################################################### 
+            # Вьюшки для списка учтенных картриджей 
 #@permission_required('printers.can_mark_returned')
-class RecordListView(FormMixin, generic.ListView):
+class RecordListView(FormMixin, generic.ListView):      # Лист учтенных картриджей
     model = Records
-    paginate_by = 20
+    paginate_by = 100
     form_class = RecordsStatusForm
 
         
@@ -520,7 +523,7 @@ class RecordListView(FormMixin, generic.ListView):
                     qs = qs.order_by('id_cart__metacart')
                 elif ord == '-7':
                     qs = qs.order_by('-id_cart__metacart')
-                
+            qs = qs.filter(status__lt=7)    
         return qs
 
     def get_context_data(self, **kwargs) -> Dict[str, Any]:
@@ -540,7 +543,7 @@ class RecordListView(FormMixin, generic.ListView):
         data['pn'] = page     
         return data
 
-def myRecordCreate(request):
+def myRecordCreate(request):                        # Создание учетного картриджа
     form = RecordsModelForm()
     if request.method =='POST':
         inv=request.POST.get('nmax')
@@ -549,20 +552,49 @@ def myRecordCreate(request):
         st=request.POST.get('status')
         cn=request.POST.get('charge_num')
         cmt=request.POST.get('comment')
-        t=createToken()
+        t=request._post['csrfmiddlewaretoken'][0:31]
         u=request.user.username
 
-        try:
-            k=Records.objects.create(id_cart = Cartriges.objects.get(pk=int(cart)), id_dep = Depart.objects.get(pk=int(dep)), status = st, charge_num = cn, inventar= inv, comment= cmt)
-            Logging(t,u,1,k.id,"Регистрация N " + inv,0)
-        except:
-            pass
+        if not Records.objects.filter(tkn=t):
+            try:
+                k=Records.objects.create(id_cart = Cartriges.objects.get(pk=int(cart)), id_dep = Depart.objects.get(pk=int(dep)), status = st, charge_num = cn, inventar= inv, comment= cmt,tkn = t)
+                Logging(t,u,1,k.id,"Регистрация N{0} -> {1}".format(inv,Depart.objects.get(pk=int(dep))),dep)
+            except:
+                pass
         return HttpResponseRedirect(reverse('records-list'))
     form.initial={'nmax':NMax(),'status':2}
     return render(request,'cartrige/record_form.html', {'form': form})    
 
+inven=0
+def myRecordCreate2(request):                        # Создание учетного картриджа с номером после
+    form = RecordsModelForm()
+    form.initial={'status':2}
+    global inven
+    if request.method =='POST':
+        dep=request.POST.get('id_dep')
+        cart=request.POST.get('id_cart')
+        st=request.POST.get('status')
+        cn=request.POST.get('charge_num')
+        cmt=request.POST.get('comment')
+        t=request._post['csrfmiddlewaretoken'][0:31]
+        u=request.user.username
+        if not Records.objects.filter(tkn=t):
+            try:
+                if form.is_valid:    
+                    inv = NMax()
+                    inven=inv
+                    k=Records.objects.create(id_cart = Cartriges.objects.get(pk=int(cart)), id_dep = Depart.objects.get(pk=int(dep)), status = st, charge_num = cn, inventar= inven, comment= cmt, tkn=t)
+                    Logging(t,u,1,k.id,"Регистрация N{0} -> {1}".format(inv,Depart.objects.get(pk=int(dep))),dep)
+            except:
+                pass
+        messages.info(request,'Новый номер ' + str(inven))
 
-class RecordUpdate(LoginRequiredMixin,PermissionRequiredMixin, BSModalUpdateView):
+        return HttpResponseRedirect(reverse_lazy('records-list'))    
+        
+    return render(request,'cartrige/record_form_m.html', {'form': form}) 
+
+
+class RecordUpdate(LoginRequiredMixin,PermissionRequiredMixin, BSModalUpdateView):          # Редактирование учетного экземпляра
     model = Records
     template_name = 'cartrige/record_form.html'
     form_class = RecordsModelForm
@@ -605,7 +637,7 @@ class RecordUpdate(LoginRequiredMixin,PermissionRequiredMixin, BSModalUpdateView
         if self.status1 != self.status2:
             self.mes += "Изменен статус: {0} на {1}; ".format(self.status1, self.status2)
         if self.comment1 != self.comment2:
-            self.mes += "Обновлен комментарий: '{0}' на '{1}'".format(self.comment1, self.comment2)
+            self.mes += "Изменение комментария" # .format(self.comment1, self.comment2)
         if self.mes != "":
             self.t=self.request._post['csrfmiddlewaretoken'][0:31]
         try:
@@ -621,7 +653,7 @@ class RecordUpdate(LoginRequiredMixin,PermissionRequiredMixin, BSModalUpdateView
         return super().form_valid(form) #HttpResponseRedirect(reverse('records-list')) #
     
     
-class RecordDelete(LoginRequiredMixin,PermissionRequiredMixin, BSModalDeleteView):
+class RecordDelete(LoginRequiredMixin,PermissionRequiredMixin, BSModalDeleteView): # Удаление записи (не используется)
     model = Records
     success_message = 'Удалено'
     permission_required = ('cartrige.can_mark_returned', 'cartrige.can_edit')
@@ -640,6 +672,7 @@ def RecordChange(request):  # замена сданного на заправл�
     reserv=""
     skl=""
     isknum = request.GET.get("isknum",default="")
+    zam = request.GET.get("zam")
     if isknum != "":
         #if Records.objects.get(inventar=int(isknum),status=2):
         try:
@@ -651,7 +684,7 @@ def RecordChange(request):  # замена сданного на заправл�
             #for dd in data:
             #    mt = dd.id_cart.metacart
             mt = data1.id_cart.metacart
-            reserv = Records.objects.filter(status__in = {1,5}, id_cart__metacart = mt.id).order_by('status','id_cart')
+            reserv = Records.objects.filter(status__in = {1,5}, id_cart__metacart = mt.id).order_by('inventar', 'status')
             skl = Sklad.objects.filter(cartriges__metacart = mt.id, cart_count__gt=0)
     
     data = stat()
@@ -669,14 +702,22 @@ def RecordChange(request):  # замена сданного на заправл�
         u=request.user.username
         b4=Records.objects.get(inventar=id) 
         out1=Records.objects.get(pk=sel_cand)
-        b4.status = 3
+        if zam=='on':
+            b4.status = 5
+            b4.comment = '{0} {1}: замена; '.format(str(b4.comment), b4.id_dep)
+
+        else:
+            b4.status = 3
         out1.status = 2
         b4.id_dep, out1.id_dep = out1.id_dep, b4.id_dep
         
-        b4.save(update_fields=['status','id_dep'])
+        b4.save(update_fields=['status','id_dep','comment'])
         out1.save(update_fields=['status','id_dep'])
         t=createToken()
-        Logging(t,u,4,b4.id,"Прием пустого - N {0} от '{1}'".format(b4.inventar, out1.id_dep),out1.id_dep_id)
+        if zam == 'on':
+            Logging(t,u,9,b4.id,"Замена - N {0} от '{1}'".format(b4.inventar, out1.id_dep),out1.id_dep_id)
+        else:
+            Logging(t,u,4,b4.id,"Прием пустого - N {0} от '{1}'".format(b4.inventar, out1.id_dep),out1.id_dep_id)
         t=createToken()
         Logging(t,u,5,out1.id,"Выдача заправленного - N {0} > '{1}'".format(out1.inventar, out1.id_dep),out1.id_dep_id)
         return HttpResponseRedirect(reverse('records-list'))
@@ -708,27 +749,38 @@ def MoveCart2Use(request,pk):     # передача со склада в обм
         dep=request.POST.get('id_dep')
         cart=request.POST.get('cartriges')
         isk=request.POST.get('isk')
+        zam=request.POST.get('zam')
         t=request._post['csrfmiddlewaretoken'][0:30]
-        try:
-            k=Records.objects.create(id_cart = Cartriges.objects.get(pk=int(cart)), id_dep = Depart.objects.get(pk=int(dep)), status = 2, charge_num = 0, inventar= int(nm))
-            skl.cart_count -= 1 
-            skl.save()
-            Logging(t,u,2,k.id,"Ввод в эксплуатацию со склада N {0} и передано '{1}'".format(nm,Depart.objects.get(pk=dep)),dep)
 
-            b4=Records.objects.get(inventar=int(isk))
-            b4.status = 3
-            b4.id_dep = Depart.objects.get(adm=True)
-            b4.save(update_fields=['status','id_dep'])
-            t=createToken()
-            Logging(t,u,4,b4.id,"Прием пустого - N {0} от '{1}'".format(isk, Depart.objects.get(pk=dep)),dep)
-        except:
-            pass
+        if not Records.objects.filter(tkn=t):
+            try:
+                k=Records.objects.create(id_cart = Cartriges.objects.get(pk=int(cart)), id_dep = Depart.objects.get(pk=int(dep)), status = 2, charge_num = 0, inventar= int(nm), comment= "",tkn = t)
+                skl.cart_count -= 1 
+                skl.save()
+                Logging(t,u,2,k.id,"Ввод в эксплуатацию со склада N {0} и передано '{1}'".format(nm,Depart.objects.get(pk=dep)),dep)
+
+                b4=Records.objects.get(inventar=int(isk))
+                if zam == 'on':
+                    b4.status = 5
+                    b4.comment = '{0} {1}: замена; '.format(str(b4.comment), b4.id_dep)
+                else:
+                    b4.status = 3
+                b4.id_dep = Depart.objects.get(adm=True)
+                b4.save(update_fields=['status','id_dep','comment'])
+                t=createToken()
+                if zam == 'on':
+                    Logging(t,u,9,b4.id,"Замена - N {0} от '{1}'".format(isk, Depart.objects.get(pk=dep)),dep)
+                else:
+                    Logging(t,u,4,b4.id,"Прием пустого - N {0} от '{1}'".format(isk, Depart.objects.get(pk=dep)),dep)
+            except:
+                pass
         
         return HttpResponseRedirect(reverse('records-list'))
     
     dep = request.GET.get('dep')
     isk = request.GET.get("isk")
-    form.initial ={'nmax': NMax(),'cartriges':skl.cartriges, 'cart_count': skl.cart_count, 'id_dep': dep, 'isk': isk}
+    zam = request.GET.get("zam")
+    form.initial ={'nmax': NMax(),'cartriges':skl.cartriges, 'cart_count': skl.cart_count, 'id_dep': dep, 'isk': isk, 'zam': zam}
     return render(request,'cartrige/sklad_move.html', {'form': form})
 
 def PrintView(request):     # формирование печатной формы передаваемых на заправку
@@ -854,9 +906,11 @@ def CartReceive(request):      # Процедура приема с заправ
         )
 
 def LogStata(request):
-    data={}
-    data_sum={}
+    data= {}
+    data_sum= {}
     inf = {}
+    spisoff = {}
+    infback = {}
     static = request.GET.get('static',default="")
     isknum = request.GET.get('isknum',default="")
     if static == "":
@@ -869,8 +923,8 @@ def LogStata(request):
 CREATE TABLE `cartrige_tmp` (
   `id` bigint NOT NULL AUTO_INCREMENT PRIMARY KEY,
   `god` int NOT NULL DEFAULT '0',
-  `meta` varchar(40) DEFAULT NULL,
-  `oper` varchar(25) DEFAULT NULL,
+  `meta` varchar(50) DEFAULT NULL,
+  `oper` varchar(50) DEFAULT NULL,
   `actid` int NOT NULL DEFAULT '0',
   `m1` int NOT NULL DEFAULT '0',
   `m2` int NOT NULL DEFAULT '0',
@@ -887,16 +941,13 @@ CREATE TABLE `cartrige_tmp` (
   `msum` int NOT NULL DEFAULT '0',
   `ord` int NOT NULL DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-
 COMMIT;
-
 '''
 # запрос по метагруппам
     query_meta = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m{0}, ord) 
-SELECT YEAR(date_event), metatitle, operation_name, action_id, count(obj),1 
+SELECT YEAR(date_event), metatitle, operation_name, action_id, count(obj_id),1 
 FROM (((`cartrige_logs`INNER JOIN `cartrige_operation` ON action_id=kod)
-INNER JOIN `cartrige_records` ON obj=`cartrige_records`.id)
+INNER JOIN `cartrige_records` ON obj_id=`cartrige_records`.id)
 INNER JOIN `cartrige_cartriges` ON id_cart_id=`cartrige_cartriges`.id)
 INNER JOIN `cartrige_metacart` ON metacart_id=`cartrige_metacart`.id
 WHERE MONTH(date_event)={1} and action_id in (1,2,5,6,7)
@@ -904,21 +955,30 @@ GROUP BY YEAR(date_event), metatitle, operation_name, action_id;'''
 
 #запрос по картриджам
     query_carts = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m{0}, ord) 
-SELECT YEAR(date_event), name_cart, operation_name, action_id, count(obj),1 
+SELECT YEAR(date_event), name_cart, operation_name, action_id, count(obj_id),1 
 FROM ((`cartrige_logs`INNER JOIN `cartrige_operation` ON action_id=kod)
-INNER JOIN `cartrige_records` ON obj=`cartrige_records`.id)
+INNER JOIN `cartrige_records` ON obj_id=`cartrige_records`.id)
 INNER JOIN `cartrige_cartriges` ON id_cart_id=`cartrige_cartriges`.id
 WHERE MONTH(date_event)={1} and action_id in (1,2,5,6,7)
 GROUP BY YEAR(date_event), name_cart, operation_name, action_id;'''
 
 # запрос по отделам
     query_dep = '''INSERT INTO `cartrige_tmp`(god, meta, oper,  m{0}, ord) 
-SELECT YEAR(date_event), name_depart, name_cart, count(obj),1 
-FROM ((`cartrige_logs`INNER JOIN `cartrige_depart` ON dep=`cartrige_depart`.id)
-INNER JOIN `cartrige_records` ON obj=`cartrige_records`.id)
+SELECT YEAR(date_event), name_depart, name_cart, count(obj_id),1 
+FROM ((`cartrige_logs` INNER JOIN `cartrige_depart` ON dep=`cartrige_depart`.id)
+INNER JOIN `cartrige_records` ON obj_id=`cartrige_records`.id)
 INNER JOIN `cartrige_cartriges` ON id_cart_id=`cartrige_cartriges`.id
-WHERE MONTH(date_event)={1} and action_id in (2,5)
-GROUP BY YEAR(date_event), name_depart, name_cart;'''
+WHERE MONTH(date_event)={1} and action_id in (1,2,5) and adm=0
+GROUP BY YEAR(date_event), name_depart, name_cart;
+
+INSERT INTO `cartrige_tmp`(god, meta, oper,  m{0}, ord) 
+SELECT YEAR(date_event), name_depart, name_cart, -count(obj_id),1 
+FROM ((`cartrige_logs` INNER JOIN `cartrige_depart` ON dep=`cartrige_depart`.id)
+INNER JOIN `cartrige_records` ON obj_id=`cartrige_records`.id)
+INNER JOIN `cartrige_cartriges` ON id_cart_id=`cartrige_cartriges`.id
+WHERE MONTH(date_event)={1} and action_id=9
+GROUP BY YEAR(date_event), name_depart, name_cart;
+'''
 
 # запрос группирующий
     query_group = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, ord) 
@@ -953,7 +1013,7 @@ GROUP BY god,meta,oper,actid, m1,m2,m3,m4,m5,m6,m7,m8,m9,m10,m11,m12
 ORDER BY god,meta,actid;
 '''
 
-# запрос сумирования всего в отдельны1 раздел
+# запрос сумирования всего в отдельный раздел
     query_sum_group = '''INSERT INTO `cartrige_tmp`(god, meta, oper, actid, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, msum, ord) 
 SELECT god, 'Всего', oper, actid, sum(m1), sum(m2), sum(m3), sum(m4), sum(m5), sum(m6), sum(m7), sum(m8), sum(m9), sum(m10), sum(m11), sum(m12), sum(msum),4
 FROM `cartrige_tmp`
@@ -961,7 +1021,6 @@ WHERE ord=3
 GROUP BY god,oper,actid
 ORDER BY god,actid;
 '''
-
 
     infdata = stat()
     all_records = infdata['all_records']
@@ -1015,7 +1074,16 @@ ORDER BY god,actid;
             cursor.execute(query_rowsall)
         data = Tmp.objects.filter(ord=5)
         #data_sum = Tmp.objects.filter(ord=4)
-
+    elif static=='5':
+        try:
+            spisoff= Records.objects.filter(status=7).order_by('date_out')
+        except:
+            pass
+    elif static=='6':
+        try:
+            infback = Logs.objects.filter(action_id = 9).order_by('date_event', 'obj_id')
+        except:
+            pass
 
     return render(
         request,
@@ -1030,6 +1098,66 @@ ORDER BY god,actid;
         'isempty' : isempty, 
         'isload' : isload,
         'inf' : inf,
-        'isknum' : isknum}, #'data_all' : data_all, 
+        'spisoff' : spisoff,
+        'isknum' : isknum,
+        'infback' : infback}, #'data_all' : data_all, 
     )
 
+
+class RecordOff(LoginRequiredMixin,BSModalUpdateView):                  # списание
+    model = Records
+    template_name = 'cartrige/record_off.html'
+    form_class = RecordsOff
+    
+    def get_success_url(self) -> str:
+        pn=self.request.GET['page']
+        return (reverse_lazy('records-list')) + '?page='+ pn
+    
+    def form_valid(self, form) -> HttpResponse:
+        instance = form.save(commit=False)
+        self.object = self.get_object()
+        u=self.request.user.username
+        pk=self.kwargs['pk']
+        instance.status=7
+        instance.date_out = datetime.datetime.today()
+
+        self.t=self.request._post['csrfmiddlewaretoken'][0:31]
+        try:
+            Logging(self.t,u,8,pk,"Списание N {0}".format(instance.inventar),0)
+        except:
+            pass
+
+        instance.save()
+        return super().form_valid(form)
+    
+
+def SearchList(request):                    # Поиск из главного меню
+    prndata={}
+    cartdata={}
+    data = stat()
+    all_records = data['all_records']
+    ost_sklad = data['ost_sklad']
+    num_rec = data['num_rec']
+    inwork = data['inwork']
+    inreserve = data['inreserve']
+    isempty = data['isempty']
+    isload = data['isload']
+
+    stext = request.GET.get('stext',default="")
+    if stext!="":
+        prndata = Printers.objects.filter(name_printer__icontains=stext)
+        cartdata = Cartriges.objects.filter(name_cart__icontains=stext)
+
+    return render(
+        request,
+        'cartrige/search.html',
+        context={'all_records' : all_records, 
+        'ost_sklad' : ost_sklad, 
+        'num_rec' : num_rec, 
+        'inwork' : inwork, 
+        'inreserve' : inreserve, 
+        'isempty' : isempty, 
+        'isload' : isload,
+        'prndata' : prndata,
+        'cartdata' : cartdata},
+        )

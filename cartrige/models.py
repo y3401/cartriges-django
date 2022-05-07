@@ -1,7 +1,6 @@
 from django.db import models
 from django.urls import reverse  # Used to generate URLs by reversing the URL patterns
 from django.contrib.auth.models import User  # Required to assign User as a borrower
-#from catalog.formatchecker import ContentTypeRestrictedFileField
 from django.core.validators import validate_image_file_extension
 from django.core.validators import FileExtensionValidator
 from phonenumber_field.modelfields import PhoneNumberField
@@ -48,11 +47,8 @@ class Sklad(models.Model):
     cart_count = models.IntegerField(verbose_name="Количество", default=0)
     
     def __str__(self):
-        #return '{0} - - - - > {1} == {2}'.format(self.id_cart.name_cart, self.cart_buh, self.cart_count)
         return self.cart_buh
 
-    #def get_absolute_url(self):
-    #    return reverse('move-cart', args=[str(self.id_cart)])
 
     class Meta:
         ordering = ['cartriges',]
@@ -65,7 +61,6 @@ class Depart(models.Model):
     
     def __str__(self):
         return '{0}'.format(self.name_depart)
-        #return '{0} ({1})'.format(self.name_depart, self.fio)
     
     class Meta:
         ordering = ['name_depart']
@@ -127,12 +122,22 @@ class Records(models.Model):
         (7, 'Списан'),
     )
 
+    #REASON = (
+    #    (1,'Износ'),
+    #    (2,'Поломка'),
+    #    (3,'Устаревание'),
+    #)
+
     status = models.PositiveSmallIntegerField(choices=LOAN_STATUS, default=5, help_text='Статус картриджа', verbose_name="Статус")
     date_in = models.DateField(null=True, blank=True, verbose_name="Дата ввода в эксплуатацию", auto_now=True, auto_created=True, editable=False)
-    date_out = models.DateField(null=True, blank=True, verbose_name="Дата передачи")
-    comment = models.TextField(max_length=300, null=True, blank=True, help_text="Комментарий", verbose_name="Примечание")
+    date_out = models.DateField(null=True, blank=True, verbose_name="Дата передачи/списания")
+    comment = models.TextField(max_length=300, blank=True, null=True, help_text="Комментарий", verbose_name="Комментарий")
     c_agent = models.ForeignKey('ContrAgent', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Контрагент")
-    
+    tkn = models.CharField(max_length=32, verbose_name="Токен", blank=True, null=True, unique=True)
+    #reason = models.TextField(max_length=150, null=True, blank=True, help_text="Причина списания", verbose_name="Причина списания")
+    #reason = models.PositiveSmallIntegerField(choices=REASON, blank=True, default=0, help_text='Причина', verbose_name="Причина")
+    #docum = models.TextField(max_length=75, null=True, blank=True, help_text="Документ", verbose_name="Документ-основание")
+
     def __str__(self):
         return str(self.inventar)
     class Meta:
@@ -153,8 +158,9 @@ class Logs(models.Model):
     token = models.CharField(max_length=32, verbose_name="Токен",unique=True)
     name_user = models.CharField(max_length=15, verbose_name="Пользователь")
     action = models.ForeignKey('Operation', on_delete=models.SET_NULL, null=True, verbose_name="Операция")
-    obj = models.IntegerField(verbose_name="ID объекта")
-    izm = models.CharField(max_length=255, verbose_name="Подробно", blank=True, null=True)
+    obj = models.ForeignKey('Records', on_delete=models.SET_NULL, null=True, verbose_name="ID_объекта")
+    #obj = models.IntegerField(verbose_name="ID объекта")
+    izm = models.CharField(max_length=300, verbose_name="Подробно", blank=True, null=True)
     dep = models.IntegerField(verbose_name="ID подразделения", null=True)
 
     class Meta:
@@ -163,8 +169,8 @@ class Logs(models.Model):
 
 class Tmp(models.Model):
     god = models.IntegerField(default=2022)
-    meta = models.CharField(max_length=40, blank=True, null=True)
-    oper = models.CharField(max_length=25, blank=True, null=True)
+    meta = models.CharField(max_length=50, blank=True, null=True)
+    oper = models.CharField(max_length=50, blank=True, null=True)
     actid = models.IntegerField(default=0)
     m1 = models.IntegerField(default=0)
     m2 = models.IntegerField(default=0)

@@ -11,20 +11,24 @@
     <h2>Список учтенных картриджей</h2>
     
     {% if user.is_staff %}
-
-    <span id="add-span" style="position: absolute; right: 55px; top: 75px;">Добавить новый
-      <img id="add-rec" src="/media/pics/add-green128.png" alt="Добавить" title="Добавить" style="width:25px; vertical-align: middle;">
-    </span>
+    
+      <span id="add-span" style="position: absolute; right: 55px; top: 75px;">Добавить новый
+        <img id="add-rec" src="/media/pics/add-green128.png" alt="Добавить" title="Добавить" style="width:25px; vertical-align: middle;cursor:pointer;">
+      </span>
+      <span id="span-add" style="position: absolute; right: 211px; top: 75px;">
+        <img id="dubrec" src="/media/pics/add.png" alt="Добавить" title="Добавить группой" style="width:25px; vertical-align: middle;cursor:pointer;">
+      </span>
     {% endif %}
-
+{% comment "" %}
     {% if perms.cartrige.can_mark_returned %}          
-            
+{% endcomment %}            
     <form id="poisk" action="" method="get" class="findform">
      Фильтр: 
         {{ form }}
       </form>
-
+{% comment "" %}
     {% endif %}
+{% endcomment %}
 <div class="listok">
 
 {% if records_list %}
@@ -49,27 +53,27 @@
     {% for rec in records_list %}
     
       <tr>
-        <th class="text-center" scope="row">{{ forloop.counter0|add:page_obj.start_index }}</th>
-        <td class="text-center">{{ rec.inventar }}</td>
+        <td class="text-center" scope="row">{{ forloop.counter0|add:page_obj.start_index }}</td>
+        <td class="text-center" {% if rec.comment %}id="com" data-title="{{ rec.comment }}"{% endif %}><b>{{ rec.inventar }}<b></td>
         <td class="text-center">{{ rec.id_cart }}</td>
         <td class="text-center">{{ rec.id_dep }}</td>
 
 {% with rec.status as rs %}
-
+<td class="text-center"
 {% if rs == 7 %}
-    <td class="text-center" style="background-color: #ca767685">
+    style="background-color: #ca767685">
 {% elif rs == 6 %}
-    <td class="text-center" style="background-color: #ff909085">
+    style="background-color: #ff909085">
 {% elif rs == 5 %}
-    <td class="text-center" style="background-color: #afdbaf85">
+    style="background-color: #afdbaf85">
 {% elif rs == 4 %}
-    <td class="text-center" style="background-color: #e092fd85">
+    style="background-color: #e092fd85">
 {% elif rs == 3 %}
-    <td class="text-center" style="background-color: #95959585">
+    style="background-color: #95959585">
 {% elif rs == 2 %}
-    <td class="text-center" style="background-color: #76b8ff85">
+    style="background-color: #76b8ff85">
 {% elif rs == 1 %}
-    <td class="text-center" style="background-color: #fafaf0">
+    style="background-color: #fafaf0">
 {% endif %}
 
 {% endwith %} 
@@ -78,16 +82,18 @@
         {% comment %}<td class="text-center">{{ rec.date_in|date:"d.m.Y" }}</td>{% endcomment %}
         <td class="text-center">{{ rec.id_cart.metacart }}</td>
         <td class="text-right">
-
-          {% if perms.cartrige.can_mark_returned %} 
+{% comment "" %}{% if perms.cartrige.can_mark_returned %}{% endcomment %} 
           {% if rec.status == 2 %}         
-          <a href="{% url 'record-change' %}?isknum={{ rec.inventar }}"><img class="" src="/media/pics/data-transfer-magenta.png" alt="Замена" title="Замена" style="width:25px"></a> 
-          {% endif %} 
-          <img class="myopa update-rec bs-modal" data-form-url="{% url 'record-update' rec.pk %}?page={{ pn }}" src="/media/pics/edit-blue128.png" id="a-img" alt="Редактировать" title="Редактировать" style="width:25px">
-            {% comment "" %}
-            <img class="myopa delete-rec bs-modal" data-form-url="{% url 'record-delete' rec.pk %}?page={{ pn }}" src="/media/pics/delete-red128.png" id="a-img" alt="Удалить" title="Удалить" style="width:25px">
-            {% endcomment %}
+            <a href="{% url 'record-change' %}?isknum={{ rec.inventar }}"><img class="" src="/media/pics/data-transfer-magenta.png" alt="Замена" title="Замена" style="width:25px"></a> 
           {% endif %}
+          {% if perms.cartrige.can_mark_returned %}
+            <img class="myopa update-rec bs-modal" data-form-url="{% url 'record-update' rec.pk %}?page={{ pn }}" src="/media/pics/edit-blue128.png" id="a-img" alt="Редактировать" title="Редактировать" style="width:25px">
+          {% endif %}
+          
+          {% if rec.status == 6 %}
+            <img class="myopa rec-off bs-modal" data-form-url="{% url 'records-off' rec.pk %}?page={{ pn }}" src="/media/pics/trash-red128.png" id="a-img" alt="Списать" title="Списать" style="width:25px">
+          {% endif %}
+        
         </td>
       </tr>
     {% endfor %}
@@ -104,8 +110,7 @@
 </div>
 
 <script type="text/javascript">
- 
-  $(function () {
+$(function () {
 $(document).ready(function(){
       var selectedStat = $.cookie("stat");
       if (selectedStat) {
@@ -153,14 +158,20 @@ $(".delete-rec").each(function () {
     $(this).modalForm({formURL: $(this).data("form-url"), isDeleteForm: true});
 });
 
-//$(".change-cart").each(function () {
-//  $(this).modalForm({formURL: $(this).data("form-url")});
-//});
+// Списание
+$(".rec-off").each(function () {
+  $(this).modalForm({formURL: $(this).data("form-url")});
+});
 
 // Create button opens form in modal with id="create-modal"
 $("#add-rec").modalForm({
     formURL: "{% url 'record-create' %}",
     modalID: "#modal"
+});
+
+$("#dubrec").modalForm({
+  formURL: "{% url 'record-create2' %}",
+  modalID: "#modal"
 });
 
 });

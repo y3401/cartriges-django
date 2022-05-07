@@ -25,12 +25,12 @@
 
       <li class="li-0">
       <table id="listok" cellpadding="5" cellspacing="5">
-        <tr style="background-color: #e4e4ea;">
-             <td id="t-img" rowspan=3>
-              <div style="width:100px; height:100px;"> 
+        <tr style="background-color: #f3f3f3;">
+             <td id="t-img" rowspan=2>
+              <div style="width:70px; height:70px;"> 
                 {% if cart.photo %}
                 <span class="vid">
-                  <img id="mini" src="{% thumbnail cart.photo 150x0 %}" data-form-url="/media/{{cart.photo}}" alt="Фото">
+                  <img id="mini" src="{% thumbnail cart.photo 80x0 %}" data-form-url="/media/{{cart.photo}}" alt="Фото">
                   
                 </span>
 
@@ -39,8 +39,8 @@
                 {% endif %}
               </div>
              </td>
-             <td id="t-num"><h4 style="color: #686875;">{{ forloop.counter0|add:page_obj.start_index }}.</h4></td>
-             <td id="t-header"><h4><b>{{ cart.name_cart }}</b> - [{{ cart.metacart }}]</h4></td>
+             <td id="t-num"><h5 style="color: #686875;">{{ forloop.counter0|add:page_obj.start_index }}.</h5></td>
+             <td id="t-header" ><h5 {% if cart.comment %} id="com" data-title="{{ cart.comment }}" {% endif %}><b>{{ cart.name_cart }}</b> - [{{ cart.metacart }}]</h5></td>
              
               {% if perms.cartrige.can_mark_returned %}
                 <td id="t-edit">
@@ -55,10 +55,11 @@
               {% endif  %}
              
         </tr>
-        <tr>
+        {% comment "" %}<tr>
              <td id="t-comment" colspan=4>{{ cart.comment }} 
              </td>
         </tr>
+        {% endcomment %}
         <tr> 
           <td id="t-list" colspan=4><span id="c-gray">Подходит к принтерам:</span> 
             {% for cc in cart.carts.all %}

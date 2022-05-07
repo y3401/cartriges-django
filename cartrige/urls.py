@@ -1,12 +1,7 @@
 ﻿from django.urls import path, include
 from . import views
-#from . import forms
 from django.conf.urls import url
-#from django.contrib.auth import authenticate, login
-#from .forms import MyAuthForm
 from django.contrib.auth import views as auth_views
-#from django.views.generic import TemplateView
-from django.views.decorators.csrf import csrf_exempt
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
@@ -16,7 +11,7 @@ urlpatterns = [
 
 urlpatterns += [
     url(r'^cartriges/$', views.CartrigeListView.as_view(), name='cartriges-list'),
-    #url(r'^cartriges/create/$', views.CartrigeCreate.as_view(), name='cartriges-create'),
+    url(r'^cartriges/(?P<pk>\d+)$', views.CartrigeDetailView.as_view(), name='cartrige-detail'),
     url(r'^cartriges/create/$', views.CartCreateView.as_view(), name='cartriges-create'),
     url(r'^cartriges/(?P<pk>\d+)/update/$', views.CartrigeUpdate.as_view(), name='cartriges-update'),
     url(r'^cartriges/(?P<pk>\d+)/delete/$', views.CartrigeDelete.as_view(), name='cartriges-delete'),
@@ -31,7 +26,7 @@ urlpatterns += [
 
 urlpatterns += [
     url(r'^printers/$', views.PrinterListView.as_view(), name='printers-list'),
-#    url(r'^printers/(?P<pk>\d+)$', views.PrinterDetailView.as_view(), name='printers-detail'),
+    url(r'^printers/(?P<pk>\d+)$', views.PrinterDetailView.as_view(), name='printers-detail'),
     url(r'^printers/create/$', views.PrinterCreate.as_view(), name='printers-create'),
     url(r'^printers/(?P<pk>\d+)/update/$', views.PrinterUpdate.as_view(), name='printers-update'),
     url(r'^printers/(?P<pk>\d+)/delete/$', views.PrinterDelete.as_view(), name='printers-delete'),
@@ -62,6 +57,7 @@ urlpatterns += [
 urlpatterns += [
     url(r'^records/$', views.RecordListView.as_view(), name='records-list'),
     url(r'^records/create/$', views.myRecordCreate, name='record-create'),
+    url(r'^records/create2/$', views.myRecordCreate2, name='record-create2'),
     url(r'^records/(?P<pk>\d+)/update/$', views.RecordUpdate.as_view(), name='record-update'),
     url(r'^records/(?P<pk>\d+)/delete/$', views.RecordDelete.as_view(), name='record-delete'),
     url(r'^records/change/$', views.RecordChange, name='record-change'),
@@ -69,10 +65,10 @@ urlpatterns += [
     url(r'^records/send/$', views.CartSend, name='records-send'),
     url(r'^records/send/print/$', views.PrintView, name='records-send-print'),
     url(r'^records/receive/$', views.CartReceive, name='records-receive'),
+    url(r'^records/off/(?P<pk>\d+)/$', views.RecordOff.as_view(), name='records-off'),
 ]
 
 urlpatterns += [
     url(r'^logs/$', views.LogStata, name='log-stata'),
+    url(r'^search/$', views.SearchList, name='spr-search'),
 ]
-    #url(r'^records/change/plus/$', views.RecordPlus.as_view(), name='change-plus'),
-    #url(r'^records/create/$', views.RecordCreate.as_view(), name='record-create'),

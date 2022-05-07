@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="description" content="">
-  <meta name="author" content="y3401">
+  <meta name="author" content="y3401@yandex.ru">
     {% block title %}<title>Система учета картриджей</title>{% endblock %}
     <!-- Добавление дополнительного статического CSS файла -->
     {% load static %}
@@ -23,6 +23,7 @@
 </head>
 
 <body>
+  <dim class="author">©Y3401 - 2022 </dim>
 {% include "_menu.html" %}
 
 {% block content %}{% endblock %}
@@ -40,7 +41,7 @@
   <h4>На складе:</h4>
 <table class="table">
   {% for ss in ost_sklad %}
-    <tr><td>{{ss.name_cart}}</td><td class="text-right">{{ss.cart_count}}</td></tr>
+    <tr title="{{ ss.cart_buh }}"><td>{{ss.name_cart}}</td><td class="text-right">{{ss.cart_count}}</td></tr>
   {% endfor %}
 </table>
 <h4>Детально:</h4>

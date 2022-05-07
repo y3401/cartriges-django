@@ -29,14 +29,16 @@
       <tr>
 
         <td id="t-num">
-            <h4 style="color: #686875;">
+            <h5 style="color: #686875;">
                 {{ forloop.counter0|add:1 }}.
-            </h4>
+            </h5>
         </td>
-        <td id="t-header">
-            <h4>
+        <td>
+            <h5 id="com" data-title="{% for cc in meta.cartriges_set.all %}
+            {{ cc }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}">
                 <b>{{ meta.metatitle }}</b>
-            </h4>
+            </h5>
             <span id="c-gray">Картриджи в группе:</span> 
             {% for cc in meta.cartriges_set.all %}
               <b>{{ cc }}</b>{% if not forloop.last %}, {% endif %}
