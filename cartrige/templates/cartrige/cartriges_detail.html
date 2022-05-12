@@ -1,0 +1,28 @@
+﻿{% load widget_tweaks %}
+
+{% load static %}
+{% load thumbnail %}
+
+<div class="modal-dialog">
+    <div class="modal-header">
+        <h3 class="modal-title">{{ cartriges.name_cart }}</h3>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div> 
+    
+    {% if cartriges.photo %}
+    <div style="width:450px; height:300px;display:inline-flex">
+      <img src="/media/{{ cartriges.photo }}" alt="Фото" style="width:100%;height:100%;object-fit:contain;">
+    </div>
+    {% endif %}
+    <p>Метагруппа:<b> {{ cartriges.metacart }}</b></p>
+    <p>Подходит к принтерам: 
+          <b>{% for cc in cartriges.carts.all %}
+            {{ cc }}{% if not forloop.last %}, {% endif %}
+          {% endfor %}</b>
+  <p>Комментарий:<b> {{ cartriges.comment }}</b></p>
+<hr>
+<a href="{% url 'cartriges-list' %}">К списку картриджей</a>
+
+</div>

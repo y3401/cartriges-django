@@ -807,7 +807,7 @@ def PrintView(request):     # формирование печатной форм
 def CartSend(request):      # Процедура передачи на заправку
     empties = ""
     cc=""
-    empties = Records.objects.filter(status__in = {3,6}).order_by('id_cart')
+    empties = Records.objects.filter(status__in = {3,6}).order_by('inventar','id_cart')
     contragent = ContrAgent.objects.filter(adm=False)
 
     data = stat()
@@ -859,9 +859,9 @@ def CartReceive(request):      # Процедура приема с заправ
     cc=""
     ca = request.GET.get('id_contragent',default="")
     if ca!='':
-        empties = Records.objects.filter(status=4,c_agent=ContrAgent.objects.get(pk=int(ca))).order_by('id_cart')
+        empties = Records.objects.filter(status=4,c_agent=ContrAgent.objects.get(pk=int(ca))).order_by('inventar','id_cart')
     else:
-        empties = Records.objects.filter(status=4).order_by('id_cart')
+        empties = Records.objects.filter(status=4).order_by('inventar','id_cart')
     contragent = ContrAgent.objects.filter(adm=False)
 
     data = stat()
@@ -905,7 +905,7 @@ def CartReceive(request):      # Процедура приема с заправ
         'isload' : isload},
         )
 
-def LogStata(request):
+def LogStata(request):              # Отчеты
     data= {}
     data_sum= {}
     inf = {}
